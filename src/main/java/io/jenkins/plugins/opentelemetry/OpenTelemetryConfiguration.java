@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class OpenTelemetryConfiguration {
 
@@ -131,6 +131,8 @@ public class OpenTelemetryConfiguration {
             // Change default of "otel.traces.exporter" from "otlp" to "none" unless "otel.exporter.otlp.endpoint" or
             // "otel.exporter.otlp.traces.endpoint" is defined
             properties.put(OTEL_TRACES_EXPORTER.asProperty(), "none");
+            properties.put(OTEL_METRICS_EXPORTER.asProperty(), "none");
+            properties.put(OTEL_LOGS_EXPORTER.asProperty(), "none");
         }
 
         this.getTrustedCertificatesPem()

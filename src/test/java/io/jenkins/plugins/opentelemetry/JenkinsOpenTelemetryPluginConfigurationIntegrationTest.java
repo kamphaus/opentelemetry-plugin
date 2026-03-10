@@ -1,5 +1,10 @@
 package io.jenkins.plugins.opentelemetry;
 
+import static org.awaitility.Awaitility.await;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import io.jenkins.plugins.opentelemetry.semconv.JenkinsMetrics;
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.sdk.metrics.data.MetricData;
@@ -11,14 +16,12 @@ import java.nio.file.Files;
 import java.util.Map;
 import java.util.Optional;
 import jenkins.model.Jenkins;
-import org.junit.After;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
-import static org.awaitility.Awaitility.await;
-import static org.hamcrest.Matchers.is;
 
 @WithJenkins
 public class JenkinsOpenTelemetryPluginConfigurationIntegrationTest {
@@ -26,11 +29,12 @@ public class JenkinsOpenTelemetryPluginConfigurationIntegrationTest {
         OpenTelemetryConfiguration.TESTING_INMEMORY_MODE = true;
     }
 
-    @BeforeEach() public void before() {
+    @BeforeEach()
+    public void before() {
         GlobalOpenTelemetry.resetForTest();
     }
 
-    @After
+    @AfterEach
     public void after() throws Exception {
         InMemoryMetricExporterProvider.LAST_CREATED_INSTANCE.reset();
     }
@@ -60,7 +64,39 @@ public class JenkinsOpenTelemetryPluginConfigurationIntegrationTest {
         Map<String, MetricData> exportedMetrics = InMemoryMetricExporterUtils.getLastExportedMetricByMetricName(
                 InMemoryMetricExporterProvider.LAST_CREATED_INSTANCE.getFinishedMetricItems());
         var metric = Optional.ofNullable(exportedMetrics.get(metricName));
-        return metric.map(m -> m.getResource().getAttributes().get(ServiceAttributes.SERVICE_NAME)).orElse(null);
+        return metric.map(m -> m.getResource().getAttributes().get(ServiceAttributes.SERVICE_NAME))
+                .orElse(null);
     }
 
+    @Test
+    @Issue("https://github.com/jenkinsci/opentelemetry-plugin/pull/1216")
+    public void logStorageRetrieverNotInitializedWhenLogsExporterIsNone(JenkinsRule r) throws Exception {
+        var extension = JenkinsOpenTelemetryPluginConfiguration.get();
+        extension.setEndpoint("http://localhost:4317");
+        extension.setServiceName("test-service");
+        extension.setConfigurationProperties("otel.logs.exporter=none");
+        extension.configureOpenTelemetrySdk();
+
+        // When logs exporter is set to 'none', logStorageRetriever should not be initialized
+        assertThrows(
+                IllegalStateException.class,
+                () -> extension.getLogStorageRetriever(),
+                "Expected getLogStorageRetriever to throw IllegalStateException when logs exporter is 'none'");
+    }
+
+    @Test
+    @Issue("https://github.com/jenkinsci/opentelemetry-plugin/pull/1216")
+    public void logStorageRetrieverInitializedWhenLogsExporterIsConfigured(JenkinsRule r) throws Exception {
+        var extension = JenkinsOpenTelemetryPluginConfiguration.get();
+        extension.setEndpoint("http://localhost:4317");
+        extension.setServiceName("test-service");
+        // Set logs exporter to otlp (not 'none')
+        extension.setConfigurationProperties("otel.logs.exporter=otlp");
+        extension.configureOpenTelemetrySdk();
+
+        // When logs exporter is configured, logStorageRetriever should be initialized
+        assertNotNull(
+                extension.getLogStorageRetriever(),
+                "Expected logStorageRetriever to be initialized when logs exporter is configured");
+    }
 }
