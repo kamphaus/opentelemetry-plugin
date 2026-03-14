@@ -139,7 +139,7 @@ public abstract class AbstractGitStepHandler implements StepHandler {
         }
         if (semConvStability.emitOtelCicdSemConv()) {
             spanBuilder.setAttribute(VcsIncubatingAttributes.VCS_REPOSITORY_NAME, gitRepositoryPath);
-            spanBuilder.setAttribute(VcsIncubatingAttributes.VCS_REPOSITORY_URL_FULL, gitUri.toString());
+            spanBuilder.setAttribute(VcsIncubatingAttributes.VCS_REPOSITORY_URL_FULL, sanitizeUrl(gitUri));
         }
         if (!Strings.isNullOrEmpty(gitBranch)) {
             if (semConvStability.emitLegacyCicdSemConv()) {
