@@ -9,10 +9,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
+import io.jenkins.plugins.opentelemetry.JenkinsOpenTelemetryPluginConfiguration;
 import io.jenkins.plugins.opentelemetry.semconv.ExtendedJenkinsAttributes;
+import io.jenkins.plugins.opentelemetry.semconv.SemConvStability;
 import io.opentelemetry.api.trace.SpanBuilder;
 import io.opentelemetry.api.trace.Tracer;
 import java.util.Map;
+
+import io.opentelemetry.semconv.incubating.CicdIncubatingAttributes;
 import jenkins.YesNoMaybe;
 import org.jenkinsci.plugins.workflow.actions.ArgumentsAction;
 import org.jenkinsci.plugins.workflow.cps.nodes.StepAtomNode;
@@ -20,8 +24,18 @@ import org.jenkinsci.plugins.workflow.graph.FlowNode;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.support.steps.build.BuildTriggerStep;
 
+import javax.inject.Inject;
+
 @Extension(optional = true, dynamicLoadable = YesNoMaybe.YES)
 public class BuildTriggerStepHandler implements StepHandler {
+
+    private SemConvStability semConvStability;
+
+    @Inject
+    public final void setSemConvStability(@NonNull JenkinsOpenTelemetryPluginConfiguration openTelemetry) {
+        this.semConvStability = openTelemetry.getSemConvStability();
+    }
+
     @Override
     public boolean canCreateSpanBuilder(@NonNull FlowNode flowNode, @NonNull WorkflowRun run) {
         return flowNode instanceof StepAtomNode
@@ -34,7 +48,12 @@ public class BuildTriggerStepHandler implements StepHandler {
         Map<String, Object> arguments = ArgumentsAction.getFilteredArguments(node);
         String job = checkNotNull(arguments.get("job")).toString();
         SpanBuilder spanBuilder = tracer.spanBuilder("build: " + job);
-        spanBuilder.setAttribute(ExtendedJenkinsAttributes.CI_PIPELINE_NAME, job);
+        if (semConvStability.emitLegacyCicdSemConv()) {
+            spanBuilder.setAttribute(ExtendedJenkinsAttributes.CI_PIPELINE_NAME, job);
+        }
+        if (semConvStability.emitOtelCicdSemConv()) {
+            spanBuilder.setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_NAME, job);
+        }
         return spanBuilder;
     }
 }
