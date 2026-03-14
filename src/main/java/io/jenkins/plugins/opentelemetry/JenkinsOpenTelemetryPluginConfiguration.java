@@ -37,6 +37,7 @@ import io.jenkins.plugins.opentelemetry.backend.ObservabilityBackend;
 import io.jenkins.plugins.opentelemetry.backend.custom.CustomLogStorageRetriever;
 import io.jenkins.plugins.opentelemetry.job.log.LogStorageRetriever;
 import io.jenkins.plugins.opentelemetry.semconv.ExtendedJenkinsAttributes;
+import io.jenkins.plugins.opentelemetry.semconv.SemConvStability;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
@@ -140,6 +141,8 @@ public class JenkinsOpenTelemetryPluginConfiguration extends GlobalConfiguration
 
     private String serviceNamespace;
 
+    private SemConvStability semConvStability = SemConvStability.JENKINS;
+
     /**
      * Interruption causes that should mark the span as error because they are external interruptions.
      * <p>
@@ -222,6 +225,11 @@ public class JenkinsOpenTelemetryPluginConfiguration extends GlobalConfiguration
             LOGGER.log(
                     Level.INFO,
                     "Migration of the 'exporterIntervalMillis' config param to 'otel.metric.export.interval' property");
+            configModified = true;
+        }
+        if (this.semConvStability == null) {
+            this.semConvStability = SemConvStability.JENKINS;
+            LOGGER.log(Level.INFO, "Migration of the 'semConvStability' config param to default JENKINS");
             configModified = true;
         }
 
@@ -584,6 +592,16 @@ public class JenkinsOpenTelemetryPluginConfiguration extends GlobalConfiguration
     @DataBoundSetter
     public void setServiceNamespace(String serviceNamespace) {
         this.serviceNamespace = serviceNamespace;
+    }
+
+    @NonNull
+    public SemConvStability getSemConvStability() {
+        return semConvStability;
+    }
+
+    @DataBoundSetter
+    public void setSemConvStability(@NonNull SemConvStability semConvStability) {
+        this.semConvStability = semConvStability;
     }
 
     @NonNull
