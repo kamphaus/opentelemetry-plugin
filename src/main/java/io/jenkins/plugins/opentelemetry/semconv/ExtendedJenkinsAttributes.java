@@ -31,6 +31,10 @@ public final class ExtendedJenkinsAttributes extends JenkinsAttributes {
      */
     public static final AttributeKey<String> CI_PIPELINE_ID = AttributeKey.stringKey("ci.pipeline.id");
 
+    /**
+     * @deprecated use {@link io.opentelemetry.semconv.incubating.CicdIncubatingAttributes#CICD_PIPELINE_NAME}
+     */
+    @Deprecated
     public static final AttributeKey<String> CI_PIPELINE_NAME = AttributeKey.stringKey("ci.pipeline.name");
     public static final AttributeKey<String> CI_PIPELINE_TEMPLATE_ID =
             AttributeKey.stringKey("ci.pipeline.template.id");

@@ -309,7 +309,7 @@ public class MonitoringRunListener extends OtelContextAwareAbstractRunListener
                         () -> new IllegalStateException("No RunHandler found for run " + run.getClass() + " - " + run));
         String pipelineShortName = runHandler.getPipelineShortName(run);
         SpanBuilder rootSpanBuilder = getTracer()
-                .spanBuilder(ExtendedJenkinsAttributes.CI_PIPELINE_RUN_ROOT_SPAN_NAME_PREFIX + pipelineShortName);
+                .spanBuilder(CicdIncubatingAttributes.CicdPipelineActionNameIncubatingValues.BUILD + " " + pipelineShortName);
         runHandler.enrichPipelineRunSpan(run, rootSpanBuilder);
         rootSpanBuilder.setSpanKind(SpanKind.SERVER);
         String runUrl = Optional.ofNullable(Jenkins.get().getRootUrl()).orElse("") + run.getUrl();
@@ -317,19 +317,25 @@ public class MonitoringRunListener extends OtelContextAwareAbstractRunListener
         // TODO move this to a pluggable span enrichment API with implementations for different observability backends
         rootSpanBuilder.setAttribute(ExtendedJenkinsAttributes.ELASTIC_TRANSACTION_TYPE, "job");
 
+        if (getSemConvStability().emitOtelCicdSemConv()) {
+            rootSpanBuilder
+                    .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_NAME, pipelineShortName)
+                    .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_RUN_URL_FULL, runUrl)
+                    .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_RUN_ID, String.valueOf(run.getNumber()));
+        }
+        if (getSemConvStability().emitOtelCicdSemConv()) {
+            rootSpanBuilder
+                    .setAttribute(
+                        ExtendedJenkinsAttributes.CI_PIPELINE_NAME,
+                        run.getParent().getFullDisplayName())
+                    .setAttribute(ExtendedJenkinsAttributes.CI_PIPELINE_RUN_URL, runUrl)
+                    .setAttribute(ExtendedJenkinsAttributes.CI_PIPELINE_RUN_NUMBER, (long) run.getNumber());
+        }
         rootSpanBuilder
-                .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_NAME, pipelineShortName)
-                .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_RUN_URL_FULL, runUrl)
-                .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_RUN_ID, String.valueOf(run.getNumber()))
                 .setAttribute(
                         ExtendedJenkinsAttributes.CI_PIPELINE_ID,
                         run.getParent().getFullName())
-                .setAttribute(
-                        ExtendedJenkinsAttributes.CI_PIPELINE_NAME,
-                        run.getParent().getFullDisplayName())
-                .setAttribute(ExtendedJenkinsAttributes.CI_PIPELINE_TYPE, OtelUtils.getProjectType(run))
-                .setAttribute(ExtendedJenkinsAttributes.CI_PIPELINE_RUN_URL, runUrl)
-                .setAttribute(ExtendedJenkinsAttributes.CI_PIPELINE_RUN_NUMBER, (long) run.getNumber());
+                .setAttribute(ExtendedJenkinsAttributes.CI_PIPELINE_TYPE, OtelUtils.getProjectType(run));
 
         // CULPRITS
         Set<User> culpritIds;
