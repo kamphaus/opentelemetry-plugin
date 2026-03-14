@@ -323,7 +323,7 @@ public class MonitoringRunListener extends OtelContextAwareAbstractRunListener
                     .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_RUN_URL_FULL, runUrl)
                     .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_RUN_ID, String.valueOf(run.getNumber()));
         }
-        if (getSemConvStability().emitOtelCicdSemConv()) {
+        if (getSemConvStability().emitLegacyCicdSemConv()) {
             rootSpanBuilder
                     .setAttribute(
                         ExtendedJenkinsAttributes.CI_PIPELINE_NAME,
