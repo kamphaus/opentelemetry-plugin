@@ -35,7 +35,8 @@
                 </f:entry>
                 <f:entry title="Semantic Convention Stability" field="semConvStability"
                          description="Choose which set of semantic conventions to use for span and metric attributes.">
-                    <f:enum/>
+                    <j:invokeStatic var="defaultSemConv" className="io.jenkins.plugins.opentelemetry.semconv.SemConvStability" method="getDefaultValue"/>
+                    <f:select default="${defaultSemConv}"/>
                 </f:entry>
                 <f:entry field="disabledResourceProviders" title="Disabled resource providers" description="Coma separated list of class names. Aka 'OTEL_JAVA_DISABLED_RESOURCE_PROVIDERS'">
                     <f:textbox />

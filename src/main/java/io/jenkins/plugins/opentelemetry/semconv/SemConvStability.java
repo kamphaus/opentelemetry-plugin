@@ -19,4 +19,9 @@ public enum SemConvStability {
     public String getDisplayName() {
         return displayName;
     }
+
+    public static String getDefaultValue() {
+        return JENKINS.name();
+    }
+
 }

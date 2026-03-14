@@ -30,6 +30,7 @@ import hudson.model.Describable;
 import hudson.model.Descriptor;
 import hudson.tasks.BuildStep;
 import hudson.util.FormValidation;
+import hudson.util.ListBoxModel;
 import io.jenkins.plugins.opentelemetry.api.ReconfigurableOpenTelemetry;
 import io.jenkins.plugins.opentelemetry.authentication.NoAuthentication;
 import io.jenkins.plugins.opentelemetry.authentication.OtlpAuthentication;
@@ -602,6 +603,14 @@ public class JenkinsOpenTelemetryPluginConfiguration extends GlobalConfiguration
     @DataBoundSetter
     public void setSemConvStability(@NonNull SemConvStability semConvStability) {
         this.semConvStability = semConvStability;
+    }
+
+    public ListBoxModel doFillSemConvStabilityItems() {
+        ListBoxModel items = new ListBoxModel();
+        for (SemConvStability semConvStability : SemConvStability.values()) {
+            items.add(semConvStability.getDisplayName(), semConvStability.name());
+        }
+        return items;
     }
 
     @NonNull
