@@ -11,7 +11,9 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
+import io.jenkins.plugins.opentelemetry.JenkinsOpenTelemetryPluginConfiguration;
 import io.jenkins.plugins.opentelemetry.semconv.ExtendedJenkinsAttributes;
+import io.jenkins.plugins.opentelemetry.semconv.SemConvStability;
 import io.opentelemetry.api.trace.SpanBuilder;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
@@ -22,10 +24,21 @@ import io.opentelemetry.semconv.UrlAttributes;
 import io.opentelemetry.semconv.incubating.PeerIncubatingAttributes;
 import io.opentelemetry.semconv.incubating.RpcIncubatingAttributes;
 import java.net.URISyntaxException;
+
+import io.opentelemetry.semconv.incubating.VcsIncubatingAttributes;
 import org.eclipse.jgit.transport.URIish;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
+import javax.inject.Inject;
+
 public abstract class AbstractGitStepHandler implements StepHandler {
+
+    private SemConvStability semConvStability;
+
+    @Inject
+    public final void setSemConvStability(@NonNull JenkinsOpenTelemetryPluginConfiguration openTelemetry) {
+        this.semConvStability = openTelemetry.getSemConvStability();
+    }
 
     public String searchGitUserName(@Nullable String credentialsId, @NonNull WorkflowRun run) {
         if (credentialsId == null) {
@@ -121,9 +134,21 @@ public abstract class AbstractGitStepHandler implements StepHandler {
             spanBuilder = tracer.spanBuilder(spanName);
         }
 
-        spanBuilder.setAttribute(ExtendedJenkinsAttributes.GIT_REPOSITORY, gitRepositoryPath);
+        if (semConvStability.emitLegacyCicdSemConv()) {
+            spanBuilder.setAttribute(ExtendedJenkinsAttributes.GIT_REPOSITORY, gitRepositoryPath);
+        }
+        if (semConvStability.emitOtelCicdSemConv()) {
+            spanBuilder.setAttribute(VcsIncubatingAttributes.VCS_REPOSITORY_NAME, gitRepositoryPath);
+            spanBuilder.setAttribute(VcsIncubatingAttributes.VCS_REPOSITORY_URL_FULL, gitUri.toString());
+        }
         if (!Strings.isNullOrEmpty(gitBranch)) {
-            spanBuilder.setAttribute(ExtendedJenkinsAttributes.GIT_BRANCH, gitBranch);
+            if (semConvStability.emitLegacyCicdSemConv()) {
+                spanBuilder.setAttribute(ExtendedJenkinsAttributes.GIT_BRANCH, gitBranch);
+            }
+            if (semConvStability.emitOtelCicdSemConv()) {
+                spanBuilder.setAttribute(VcsIncubatingAttributes.VCS_REF_HEAD_NAME, gitBranch);
+                spanBuilder.setAttribute(VcsIncubatingAttributes.VCS_REF_HEAD_TYPE, VcsIncubatingAttributes.VcsRefHeadTypeIncubatingValues.BRANCH);
+            }
         }
         if (!Strings.isNullOrEmpty(gitUserName)) {
             spanBuilder.setAttribute(ExtendedJenkinsAttributes.GIT_USERNAME, gitUserName);

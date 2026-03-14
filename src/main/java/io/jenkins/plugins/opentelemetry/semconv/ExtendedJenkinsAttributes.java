@@ -101,7 +101,7 @@ public final class ExtendedJenkinsAttributes extends JenkinsAttributes {
     @Deprecated
     public static final AttributeKey<String> GIT_REPOSITORY = AttributeKey.stringKey("git.repository");
     /**
-     * @deprecated use {@link io.opentelemetry.semconv.incubating.VcsIncubatingAttributes#VCS_REF_BASE_NAME} and {@link io.opentelemetry.semconv.incubating.VcsIncubatingAttributes#VCS_REF_BASE_TYPE}
+     * @deprecated use {@link io.opentelemetry.semconv.incubating.VcsIncubatingAttributes#VCS_REF_HEAD_NAME} and {@link io.opentelemetry.semconv.incubating.VcsIncubatingAttributes#VCS_REF_HEAD_TYPE}
      */
     @Deprecated
     public static final AttributeKey<String> GIT_BRANCH = AttributeKey.stringKey("git.branch");
