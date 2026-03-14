@@ -28,12 +28,8 @@ import io.jenkins.plugins.opentelemetry.api.OpenTelemetryLifecycleListener;
 import io.jenkins.plugins.opentelemetry.job.cause.CauseHandler;
 import io.jenkins.plugins.opentelemetry.job.opentelemetry.OtelContextAwareAbstractRunListener;
 import io.jenkins.plugins.opentelemetry.job.runhandler.RunHandler;
-import io.jenkins.plugins.opentelemetry.opentelemetry.SemconvStability;
 import io.jenkins.plugins.opentelemetry.queue.RemoteSpanAction;
-import io.jenkins.plugins.opentelemetry.semconv.CicdMetrics;
-import io.jenkins.plugins.opentelemetry.semconv.ConfigurationKey;
-import io.jenkins.plugins.opentelemetry.semconv.ExtendedJenkinsAttributes;
-import io.jenkins.plugins.opentelemetry.semconv.JenkinsMetrics;
+import io.jenkins.plugins.opentelemetry.semconv.*;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.incubator.metrics.ExtendedDoubleHistogramBuilder;
@@ -179,9 +175,8 @@ public class MonitoringRunListener extends OtelContextAwareAbstractRunListener
         // the initialization of other metrics
         // TODO only create new CICD semconv metrics if semconvStability.emitStableCicdSemconv() is true
         // else shall we use use no-op metrics
-        SemconvStability semconvStability = new SemconvStability();
-        semconvStability.afterConfiguration(configProperties);
-        Meter newSemConventionsMeter = semconvStability.emitStableCicdSemconv()
+        SemConvStability semConvStability = getSemConvStability();
+        Meter newSemConventionsMeter = semConvStability.emitOtelCicdSemConv()
             ? meter
             : OpenTelemetry.noop().getMeter("jenkins.opentelemetry");
         cicdPipelineRunDurationHistogram = CicdMetrics.newCiCdPipelineRunDurationHistogram(newSemConventionsMeter);
@@ -190,15 +185,15 @@ public class MonitoringRunListener extends OtelContextAwareAbstractRunListener
         // TODO when to qualify a build failure as a cicd system error?
         cicdSystemErrorsCounter = CicdMetrics.newCiCdSystemErrorsCounter(newSemConventionsMeter);
 
-        createOldSemanticConventionsMeasurements(semconvStability, meter);
+        createOldSemanticConventionsMeasurements(semConvStability, meter);
     }
 
     /**
      * Locate the initialization of old semantic conventions measurements in a dedicated method to isolate the code,
      * prevent misuse of the no-op meter, and ase removal of the code
      */
-    private void createOldSemanticConventionsMeasurements(SemconvStability semconvStability, Meter meter) {
-        Meter oldSemConventionsMeter = semconvStability.emitOldCicdSemconv()
+    private void createOldSemanticConventionsMeasurements(SemConvStability semConvStability, Meter meter) {
+        Meter oldSemConventionsMeter = semConvStability.emitLegacyCicdSemConv()
                 ? meter
                 : OpenTelemetry.noop().getMeter("jenkins.opentelemetry");
 

@@ -20,6 +20,7 @@ import io.jenkins.plugins.opentelemetry.JenkinsControllerOpenTelemetry;
 import io.jenkins.plugins.opentelemetry.JenkinsOpenTelemetryPluginConfiguration;
 import io.jenkins.plugins.opentelemetry.OtelUtils;
 import io.jenkins.plugins.opentelemetry.semconv.ExtendedJenkinsAttributes;
+import io.jenkins.plugins.opentelemetry.semconv.SemConvStability;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanBuilder;
 import io.opentelemetry.api.trace.StatusCode;
@@ -39,6 +40,7 @@ public class MonitoringBuildStepListener extends BuildStepListener {
 
     private OtelTraceService otelTraceService;
     private Tracer tracer;
+    private SemConvStability semConvStability;
 
     /** {@inheritDoc} */
     @Override
@@ -140,5 +142,10 @@ public class MonitoringBuildStepListener extends BuildStepListener {
     @Inject
     public void setTracer(JenkinsControllerOpenTelemetry jenkinsControllerOpenTelemetry) {
         this.tracer = jenkinsControllerOpenTelemetry.getDefaultTracer();
+    }
+
+    @Inject
+    public void setSemConvStability(JenkinsOpenTelemetryPluginConfiguration openTelemetry) {
+        this.semConvStability = openTelemetry.getSemConvStability();
     }
 }

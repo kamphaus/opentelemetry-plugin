@@ -29,6 +29,7 @@ import io.jenkins.plugins.opentelemetry.job.step.StepHandler;
 import io.jenkins.plugins.opentelemetry.job.step.WithSpanAttributeStep;
 import io.jenkins.plugins.opentelemetry.job.step.WithSpanAttributesStep;
 import io.jenkins.plugins.opentelemetry.semconv.ExtendedJenkinsAttributes;
+import io.jenkins.plugins.opentelemetry.semconv.SemConvStability;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanBuilder;
@@ -81,6 +82,7 @@ public class MonitoringPipelineListener extends AbstractPipelineListener
     private Tracer tracer;
     private Set<String> ignoredSteps;
     private List<StepHandler> stepHandlers;
+    private SemConvStability semConvStability;
 
     /**
      * Interruption causes that should mark the span as error because they are external interruptions.
@@ -101,6 +103,7 @@ public class MonitoringPipelineListener extends AbstractPipelineListener
                 jenkinsOpenTelemetryPluginConfiguration.getIgnoredSteps().split(",")));
         this.statusUnsetCausesOfInterruption =
                 new HashSet<>(jenkinsOpenTelemetryPluginConfiguration.getStatusUnsetCausesOfInterruption());
+        this.semConvStability = jenkinsOpenTelemetryPluginConfiguration.getSemConvStability();
     }
 
     @Override

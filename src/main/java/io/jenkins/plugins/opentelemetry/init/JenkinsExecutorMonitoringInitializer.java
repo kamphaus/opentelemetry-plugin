@@ -13,10 +13,11 @@ import hudson.model.Computer;
 import hudson.model.LoadStatistics;
 import hudson.model.Node;
 import io.jenkins.plugins.opentelemetry.JenkinsControllerOpenTelemetry;
+import io.jenkins.plugins.opentelemetry.JenkinsOpenTelemetryPluginConfiguration;
 import io.jenkins.plugins.opentelemetry.api.OpenTelemetryLifecycleListener;
-import io.jenkins.plugins.opentelemetry.opentelemetry.SemconvStability;
 import io.jenkins.plugins.opentelemetry.semconv.CicdMetrics;
 import io.jenkins.plugins.opentelemetry.semconv.ExtendedJenkinsAttributes;
+import io.jenkins.plugins.opentelemetry.semconv.SemConvStability;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.Meter;
@@ -41,13 +42,17 @@ public class JenkinsExecutorMonitoringInitializer implements OpenTelemetryLifecy
     @Inject
     JenkinsControllerOpenTelemetry jenkinsControllerOpenTelemetry;
 
-    @Inject
-    SemconvStability semconvStability;
+    private SemConvStability semConvStability;
 
     final AtomicBoolean initialized = new AtomicBoolean(false);
 
     public JenkinsExecutorMonitoringInitializer() {
         logger.log(Level.FINE, () -> "JenkinsExecutorMonitoringInitializer constructor");
+    }
+
+    @Inject
+    public void setSemConvStability(JenkinsOpenTelemetryPluginConfiguration openTelemetry) {
+        this.semConvStability = openTelemetry.getSemConvStability();
     }
 
     @Override
@@ -65,10 +70,10 @@ public class JenkinsExecutorMonitoringInitializer implements OpenTelemetryLifecy
         logger.log(Level.INFO, () -> "Start monitoring Jenkins controller executor pool...");
 
         Meter meter = Objects.requireNonNull(jenkinsControllerOpenTelemetry).getDefaultMeter();
-        Meter oldSemConventionsMeter = semconvStability.emitOldCicdSemconv()
+        Meter oldSemConventionsMeter = semConvStability.emitLegacyCicdSemConv()
                 ? meter
                 : OpenTelemetry.noop().getMeter("jenkins.opentelemetry");
-        Meter newSemConventionsMeter = semconvStability.emitStableCicdSemconv()
+        Meter newSemConventionsMeter = semConvStability.emitOtelCicdSemConv()
                 ? meter
                 : OpenTelemetry.noop().getMeter("jenkins.opentelemetry");
 
