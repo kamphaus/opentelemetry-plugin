@@ -144,6 +144,8 @@ public class JenkinsOpenTelemetryPluginConfiguration extends GlobalConfiguration
 
     private SemConvStability semConvStability = SemConvStability.JENKINS;
 
+    private transient SemConvStability configuredSemConvStability;
+
     /**
      * Interruption causes that should mark the span as error because they are external interruptions.
      * <p>
@@ -171,6 +173,7 @@ public class JenkinsOpenTelemetryPluginConfiguration extends GlobalConfiguration
     @Override
     public void load() {
         super.load();
+        configuredSemConvStability = semConvStability;
         if (currentOpenTelemetryConfiguration != null) {
             // After reloading the XML configuration, we need to reconfigure the OTel SDK, otherwise the fields here
             // may be out of sync with the SDK. We only do this as long as `configureOpenTelemetrySdk` has run at least
@@ -760,6 +763,20 @@ public class JenkinsOpenTelemetryPluginConfiguration extends GlobalConfiguration
             }
         }
         return FormValidation.ok();
+    }
+
+    /**
+     * Warn to restart Jenkins if the value changed.
+     *
+     * @param value the semConvStability flag
+     * @return ok if the form input was valid
+     */
+    public FormValidation doCheckSemConvStability(@QueryParameter String value) {
+        if (configuredSemConvStability != null && configuredSemConvStability.name().equals(value)) {
+            return FormValidation.ok();
+        }
+        return FormValidation.warning(
+            "A restart of Jenkins is required for this value to take effect");
     }
 
     /**
