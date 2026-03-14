@@ -129,7 +129,9 @@ public final class ExtendedJenkinsAttributes extends JenkinsAttributes {
     /**
      * @see org.jenkinsci.plugins.workflow.pipelinegraphanalysis.GenericStatus
      * @see org.jenkinsci.plugins.workflow.pipelinegraphanalysis.StatusAndTiming#computeChunkStatus2(org.jenkinsci.plugins.workflow.job.WorkflowRun,org.jenkinsci.plugins.workflow.graph.FlowNode,org.jenkinsci.plugins.workflow.graph.FlowNode,org.jenkinsci.plugins.workflow.graph.FlowNode,org.jenkinsci.plugins.workflow.graph.FlowNode)
+     * @deprecated use {@link io.opentelemetry.semconv.incubating.CicdIncubatingAttributes#CICD_PIPELINE_TASK_RUN_RESULT}
      */
+    @Deprecated
     public static final AttributeKey<String> JENKINS_STEP_RESULT =
             AttributeKey.stringKey("jenkins.pipeline.step.result");
     /**
