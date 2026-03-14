@@ -585,8 +585,14 @@ public class MonitoringRunListener extends OtelContextAwareAbstractRunListener
                 Node node = ((AbstractBuild<?, ?>) run).getBuiltOn();
                 if (node != null) {
                     parentSpan.setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_AGENT_LABEL, node.getLabelString());
-                    parentSpan.setAttribute(ExtendedJenkinsAttributes.CI_PIPELINE_AGENT_ID, node.getNodeName());
-                    parentSpan.setAttribute(ExtendedJenkinsAttributes.CI_PIPELINE_AGENT_NAME, node.getDisplayName());
+                    if (getSemConvStability().emitLegacyCicdSemConv()) {
+                        parentSpan.setAttribute(ExtendedJenkinsAttributes.CI_PIPELINE_AGENT_ID, node.getNodeName());
+                        parentSpan.setAttribute(ExtendedJenkinsAttributes.CI_PIPELINE_AGENT_NAME, node.getDisplayName());
+                    }
+                    if (getSemConvStability().emitOtelCicdSemConv()) {
+                        parentSpan.setAttribute(CicdIncubatingAttributes.CICD_WORKER_ID, node.getNodeName());
+                        parentSpan.setAttribute(CicdIncubatingAttributes.CICD_WORKER_NAME, node.getDisplayName());
+                    }
                 }
             }
             parentSpan.end();
