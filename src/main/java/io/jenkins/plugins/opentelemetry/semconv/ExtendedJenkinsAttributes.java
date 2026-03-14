@@ -37,12 +37,16 @@ public final class ExtendedJenkinsAttributes extends JenkinsAttributes {
     public static final AttributeKey<String> CI_PIPELINE_TEMPLATE_URL =
             AttributeKey.stringKey("ci.pipeline.template.url");
     /**
+     * @deprecated use {@link io.opentelemetry.semconv.incubating.CicdIncubatingAttributes#CICD_WORKER_ID}
      * @see hudson.model.Node#getNodeName()
      */
+    @Deprecated
     public static final AttributeKey<String> CI_PIPELINE_AGENT_ID = AttributeKey.stringKey("ci.pipeline.agent.id");
     /**
+     * @deprecated use {@link io.opentelemetry.semconv.incubating.CicdIncubatingAttributes#CICD_WORKER_NAME}
      * @see hudson.model.Node#getDisplayName() ()
      */
+    @Deprecated
     public static final AttributeKey<String> CI_PIPELINE_AGENT_NAME = AttributeKey.stringKey("ci.pipeline.agent.name");
 
     public static final AttributeKey<List<String>> CI_PIPELINE_RUN_COMMITTERS =
