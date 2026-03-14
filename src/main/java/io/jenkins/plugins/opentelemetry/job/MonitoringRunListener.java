@@ -319,6 +319,7 @@ public class MonitoringRunListener extends OtelContextAwareAbstractRunListener
 
         if (getSemConvStability().emitOtelCicdSemConv()) {
             rootSpanBuilder
+                    .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_ACTION_NAME, CicdIncubatingAttributes.CicdPipelineActionNameIncubatingValues.BUILD)
                     .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_NAME, pipelineShortName)
                     .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_RUN_URL_FULL, runUrl)
                     .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_RUN_ID, String.valueOf(run.getNumber()));
