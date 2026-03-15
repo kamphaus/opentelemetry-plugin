@@ -317,13 +317,6 @@ public class MonitoringRunListener extends OtelContextAwareAbstractRunListener
         // TODO move this to a pluggable span enrichment API with implementations for different observability backends
         rootSpanBuilder.setAttribute(ExtendedJenkinsAttributes.ELASTIC_TRANSACTION_TYPE, "job");
 
-        if (getSemConvStability().emitOtelCicdSemConv()) {
-            rootSpanBuilder
-                    .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_ACTION_NAME, CicdIncubatingAttributes.CicdPipelineActionNameIncubatingValues.BUILD)
-                    .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_NAME, pipelineShortName)
-                    .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_RUN_URL_FULL, runUrl)
-                    .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_RUN_ID, String.valueOf(run.getNumber()));
-        }
         if (getSemConvStability().emitLegacyCicdSemConv()) {
             rootSpanBuilder
                     .setAttribute(
@@ -331,6 +324,13 @@ public class MonitoringRunListener extends OtelContextAwareAbstractRunListener
                         run.getParent().getFullDisplayName())
                     .setAttribute(ExtendedJenkinsAttributes.CI_PIPELINE_RUN_URL, runUrl)
                     .setAttribute(ExtendedJenkinsAttributes.CI_PIPELINE_RUN_NUMBER, (long) run.getNumber());
+        }
+        if (getSemConvStability().emitOtelCicdSemConv()) {
+            rootSpanBuilder
+                    .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_ACTION_NAME, CicdIncubatingAttributes.CicdPipelineActionNameIncubatingValues.BUILD)
+                    .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_NAME, pipelineShortName)
+                    .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_RUN_URL_FULL, runUrl)
+                    .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_RUN_ID, String.valueOf(run.getNumber()));
         }
         rootSpanBuilder
                 .setAttribute(
