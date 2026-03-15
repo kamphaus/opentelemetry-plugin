@@ -57,9 +57,6 @@ public class CicdMetrics {
         return cicdPipelineRunActiveCounterBuilder.build();
     }
 
-    /**
-     * FIXME shouldn't it be a gauge rather than an upDownCounter?
-     */
     public static ObservableLongMeasurement newCiCdWorkerCounter(Meter meter) {
         LongUpDownCounterBuilder cicdWorkerCountBuilder = meter.upDownCounterBuilder("cicd.worker.count")
                 .setUnit("{worker}")
