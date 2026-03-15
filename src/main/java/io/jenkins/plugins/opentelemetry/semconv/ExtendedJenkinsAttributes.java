@@ -146,7 +146,9 @@ public final class ExtendedJenkinsAttributes extends JenkinsAttributes {
             AttributeKey.stringKey("jenkins.pipeline.step.plugin.version");
     /**
      * @see Computer#getName()
+     * @deprecated use {@link io.opentelemetry.semconv.incubating.CicdIncubatingAttributes#CICD_WORKER_ID} and {@link io.opentelemetry.semconv.incubating.CicdIncubatingAttributes#CICD_WORKER_NAME}
      */
+    @Deprecated
     public static final AttributeKey<String> JENKINS_COMPUTER_NAME = AttributeKey.stringKey("jenkins.computer.name");
 
     public static final AttributeKey<String> JENKINS_STEP_AGENT_LABEL =

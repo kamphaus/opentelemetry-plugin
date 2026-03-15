@@ -37,6 +37,7 @@ import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
+import io.opentelemetry.semconv.incubating.CicdIncubatingAttributes;
 import io.opentelemetry.semconv.incubating.HostIncubatingAttributes;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -550,16 +551,28 @@ public class MonitoringPipelineListener extends AbstractPipelineListener
                                 + ", adding fallback");
                 String hostName = computer.getHostName();
                 OpenTelemetryAttributesAction openTelemetryAttributesAction = new OpenTelemetryAttributesAction();
+                var actionAttributes = openTelemetryAttributesAction.getAttributes();
                 if (hostName != null) {
                     // getHostName() returns null if the master cannot find the host name, e.g. due to network settings.
                     // @see hudson.model.Computer#getHostName()
-                    openTelemetryAttributesAction.getAttributes().put(HostIncubatingAttributes.HOST_NAME, hostName);
+                    actionAttributes.put(HostIncubatingAttributes.HOST_NAME, hostName);
                 }
-                openTelemetryAttributesAction
-                        .getAttributes()
-                        .put(
-                                AttributeKey.stringKey(ExtendedJenkinsAttributes.JENKINS_COMPUTER_NAME.getKey()),
+                if (semConvStability.emitLegacyCicdSemConv()) {
+                    actionAttributes
+                            .put(
+                                ExtendedJenkinsAttributes.JENKINS_COMPUTER_NAME,
                                 computer.getName());
+                }
+                if (semConvStability.emitOtelCicdSemConv()) {
+                    actionAttributes
+                            .put(
+                                CicdIncubatingAttributes.CICD_WORKER_ID,
+                                computer.getName());
+                    actionAttributes
+                            .put(
+                                CicdIncubatingAttributes.CICD_WORKER_NAME,
+                                computer.getName());
+                }
                 computer.addAction(openTelemetryAttributesAction);
             }
             OpenTelemetryAttributesAction otelComputerAttributesAction =
