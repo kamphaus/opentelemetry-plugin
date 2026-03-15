@@ -31,6 +31,8 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.inject.Inject;
+
+import io.opentelemetry.semconv.incubating.CicdIncubatingAttributes;
 import jenkins.YesNoMaybe;
 
 @Extension(dynamicLoadable = YesNoMaybe.YES)
@@ -58,13 +60,20 @@ public class MonitoringBuildStepListener extends BuildStepListener {
             final String jenkinsVersion = OtelUtils.getJenkinsVersion();
             spanBuilder
                     .setParent(Context.current())
-                    .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_NAME, stepName)
                     .setAttribute(
                             ExtendedJenkinsAttributes.JENKINS_STEP_PLUGIN_NAME,
                             stepPlugin.isUnknown() ? JENKINS_CORE : stepPlugin.getName())
                     .setAttribute(
                             ExtendedJenkinsAttributes.JENKINS_STEP_PLUGIN_VERSION,
                             stepPlugin.isUnknown() ? jenkinsVersion : stepPlugin.getVersion());
+            if (semConvStability.emitLegacyCicdSemConv()) {
+                spanBuilder
+                        .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_NAME, stepName);
+            }
+            if (semConvStability.emitOtelCicdSemConv()) {
+                spanBuilder
+                        .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_TASK_NAME, stepName);
+            }
 
             Span atomicStepSpan = spanBuilder.startSpan();
             LOGGER.log(

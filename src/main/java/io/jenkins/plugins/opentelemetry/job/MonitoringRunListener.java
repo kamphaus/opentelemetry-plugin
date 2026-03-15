@@ -554,8 +554,14 @@ public class MonitoringRunListener extends OtelContextAwareAbstractRunListener
                 parentSpan.setStatus(StatusCode.UNSET);
             } else {
                 parentSpan.setAttribute(ExtendedJenkinsAttributes.CI_PIPELINE_RUN_COMPLETED, runResult.completeBuild);
-                parentSpan.setAttribute(
-                        ExtendedJenkinsAttributes.CI_PIPELINE_RUN_RESULT, Objects.toString(runResult, null));
+                if (getSemConvStability().emitLegacyCicdSemConv()) {
+                    parentSpan.setAttribute(
+                            ExtendedJenkinsAttributes.CI_PIPELINE_RUN_RESULT, Objects.toString(runResult, null));
+                }
+                if (getSemConvStability().emitOtelCicdSemConv()) {
+                    parentSpan.setAttribute(
+                            CicdIncubatingAttributes.CICD_PIPELINE_RESULT, CicdMetrics.fromJenkinsResultToOtelCicdPipelineResult(runResult));
+                }
 
                 if (Result.SUCCESS.equals(runResult)) {
                     parentSpan.setStatus(StatusCode.OK, runResult.toString());

@@ -28,6 +28,7 @@ import io.jenkins.plugins.opentelemetry.job.step.SpanAttribute;
 import io.jenkins.plugins.opentelemetry.job.step.StepHandler;
 import io.jenkins.plugins.opentelemetry.job.step.WithSpanAttributeStep;
 import io.jenkins.plugins.opentelemetry.job.step.WithSpanAttributesStep;
+import io.jenkins.plugins.opentelemetry.semconv.CicdMetrics;
 import io.jenkins.plugins.opentelemetry.semconv.ExtendedJenkinsAttributes;
 import io.jenkins.plugins.opentelemetry.semconv.SemConvStability;
 import io.opentelemetry.api.common.AttributeKey;
@@ -120,13 +121,23 @@ public class MonitoringPipelineListener extends AbstractPipelineListener
             SpanBuilder agentSpanBuilder = getTracer()
                     .spanBuilder(ExtendedJenkinsAttributes.AGENT_UI)
                     .setParent(Context.current())
-                    .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_TYPE, stepType)
                     .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_ID, stepStartNode.getId())
-                    .setAttribute(
-                            ExtendedJenkinsAttributes.JENKINS_STEP_NAME,
-                            ExtendedJenkinsAttributes.AGENT) // FIXME verify it's the right semantic and value
                     .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_PLUGIN_NAME, stepPlugin.getName())
                     .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_PLUGIN_VERSION, stepPlugin.getVersion());
+            if (semConvStability.emitLegacyCicdSemConv()) {
+                agentSpanBuilder
+                        .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_TYPE, stepType)
+                        .setAttribute(
+                            ExtendedJenkinsAttributes.JENKINS_STEP_NAME,
+                            ExtendedJenkinsAttributes.AGENT); // FIXME verify it's the right semantic and value
+            }
+            if (semConvStability.emitOtelCicdSemConv()) {
+                agentSpanBuilder
+                        .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_TASK_TYPE, stepType)
+                        .setAttribute(
+                            CicdIncubatingAttributes.CICD_PIPELINE_TASK_NAME,
+                            ExtendedJenkinsAttributes.AGENT); // FIXME verify it's the right semantic and value
+            }
             if (agentLabel != null) {
                 agentSpanBuilder.setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_AGENT_LABEL, agentLabel);
             }
@@ -143,19 +154,35 @@ public class MonitoringPipelineListener extends AbstractPipelineListener
                 SpanBuilder allocateAgentSpanBuilder = getTracer()
                         .spanBuilder(ExtendedJenkinsAttributes.AGENT_ALLOCATION_UI)
                         .setParent(Context.current())
-                        .setAttribute(
-                                ExtendedJenkinsAttributes.JENKINS_STEP_TYPE,
-                                getStepType(
+                        .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_ID, stepStartNode.getId())
+                        .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_PLUGIN_NAME, stepPlugin.getName())
+                        .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_PLUGIN_VERSION, stepPlugin.getVersion());
+                if (semConvStability.emitLegacyCicdSemConv()) {
+                    allocateAgentSpanBuilder
+                            .setAttribute(
+                                    ExtendedJenkinsAttributes.JENKINS_STEP_TYPE,
+                                    getStepType(
                                         stepStartNode,
                                         stepStartNode.getDescriptor(),
                                         ExtendedJenkinsAttributes.STEP_NODE))
-                        .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_ID, stepStartNode.getId())
-                        .setAttribute(
+                            .setAttribute(
                                 ExtendedJenkinsAttributes.JENKINS_STEP_NAME,
                                 ExtendedJenkinsAttributes
-                                        .AGENT_ALLOCATE) // FIXME verify it's the right semantic and value
-                        .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_PLUGIN_NAME, stepPlugin.getName())
-                        .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_PLUGIN_VERSION, stepPlugin.getVersion());
+                                    .AGENT_ALLOCATE); // FIXME verify it's the right semantic and value
+                }
+                if (semConvStability.emitOtelCicdSemConv()) {
+                    allocateAgentSpanBuilder
+                            .setAttribute(
+                                    CicdIncubatingAttributes.CICD_PIPELINE_TASK_TYPE,
+                                    getStepType(
+                                        stepStartNode,
+                                        stepStartNode.getDescriptor(),
+                                        ExtendedJenkinsAttributes.STEP_NODE))
+                            .setAttribute(
+                                    CicdIncubatingAttributes.CICD_PIPELINE_TASK_NAME,
+                                    ExtendedJenkinsAttributes
+                                        .AGENT_ALLOCATE); // FIXME verify it's the right semantic and value
+                }
                 if (agentLabel != null) {
                     allocateAgentSpanBuilder.setAttribute(
                             ExtendedJenkinsAttributes.JENKINS_STEP_AGENT_LABEL, agentLabel);
@@ -193,12 +220,20 @@ public class MonitoringPipelineListener extends AbstractPipelineListener
             Span stageSpan = getTracer()
                     .spanBuilder(spanStageName)
                     .setParent(Context.current())
-                    .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_TYPE, stepType)
                     .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_ID, stepStartNode.getId())
-                    .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_NAME, stageName)
                     .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_PLUGIN_NAME, stepPlugin.getName())
                     .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_PLUGIN_VERSION, stepPlugin.getVersion())
                     .startSpan();
+            if (semConvStability.emitLegacyCicdSemConv()) {
+                stageSpan
+                        .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_TYPE, stepType)
+                        .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_NAME, stageName);
+            }
+            if (semConvStability.emitOtelCicdSemConv()) {
+                stageSpan
+                        .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_TASK_TYPE, stepType)
+                        .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_TASK_NAME, stageName);
+            }
             LOGGER.log(
                     Level.FINE,
                     () -> run.getFullDisplayName() + " - > stage(" + stageName + ") - begin "
@@ -261,14 +296,24 @@ public class MonitoringPipelineListener extends AbstractPipelineListener
                 JenkinsOpenTelemetryPluginConfiguration.get().findStepPluginOrDefault(stepType, node);
 
         spanBuilder
-                .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_TYPE, stepType)
                 .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_ID, node.getId())
-                .setAttribute(
-                        ExtendedJenkinsAttributes.JENKINS_STEP_NAME,
-                        getStepName(node, ExtendedJenkinsAttributes.STEP_NAME))
                 .setAttribute(ExtendedJenkinsAttributes.CI_PIPELINE_RUN_USER, principal)
                 .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_PLUGIN_NAME, stepPlugin.getName())
                 .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_PLUGIN_VERSION, stepPlugin.getVersion());
+        if (semConvStability.emitLegacyCicdSemConv()) {
+            spanBuilder
+                    .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_TYPE, stepType)
+                    .setAttribute(
+                        ExtendedJenkinsAttributes.JENKINS_STEP_NAME,
+                        getStepName(node, ExtendedJenkinsAttributes.STEP_NAME));
+        }
+        if (semConvStability.emitOtelCicdSemConv()) {
+            spanBuilder
+                    .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_TASK_TYPE, stepType)
+                    .setAttribute(
+                        CicdIncubatingAttributes.CICD_PIPELINE_TASK_NAME,
+                        getStepName(node, ExtendedJenkinsAttributes.STEP_NAME));
+        }
 
         Span atomicStepSpan = spanBuilder.startSpan();
         LOGGER.log(
@@ -373,12 +418,21 @@ public class MonitoringPipelineListener extends AbstractPipelineListener
             Span atomicStepSpan = getTracer()
                     .spanBuilder("Parallel branch: " + branchName)
                     .setParent(Context.current())
-                    .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_TYPE, stepType)
+
                     .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_ID, stepStartNode.getId())
-                    .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_NAME, branchName)
                     .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_PLUGIN_NAME, stepPlugin.getName())
                     .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_PLUGIN_VERSION, stepPlugin.getVersion())
                     .startSpan();
+            if (semConvStability.emitLegacyCicdSemConv()) {
+                atomicStepSpan
+                        .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_TYPE, stepType)
+                        .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_NAME, branchName);
+            }
+            if (semConvStability.emitOtelCicdSemConv()) {
+                atomicStepSpan
+                        .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_TASK_TYPE, stepType)
+                        .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_TASK_NAME, branchName);
+            }
             LOGGER.log(
                     Level.FINE,
                     () -> run.getFullDisplayName() + " - > parallel branch(" + branchName + ") - begin "
@@ -446,7 +500,12 @@ public class MonitoringPipelineListener extends AbstractPipelineListener
 
             if (status != null) {
                 status = StatusAndTiming.coerceStatusApi(status, StatusAndTiming.API_V2);
-                span.setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_RESULT, status.toString());
+                if (semConvStability.emitLegacyCicdSemConv()) {
+                    span.setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_RESULT, status.toString());
+                }
+                if (semConvStability.emitOtelCicdSemConv()) {
+                    span.setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_TASK_RUN_RESULT, CicdMetrics.fromJenkinsGenericResultToOtelCicdPipelineResult(status));
+                }
             }
 
             span.end();
@@ -477,11 +536,19 @@ public class MonitoringPipelineListener extends AbstractPipelineListener
             SpanBuilder spanBuilder = getTracer()
                     .spanBuilder(spanLabel)
                     .setParent(Context.current())
-                    .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_TYPE, stepType)
                     .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_ID, stepStartNode.getId())
-                    .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_NAME, stepName)
                     .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_PLUGIN_NAME, stepPlugin.getName())
                     .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_PLUGIN_VERSION, stepPlugin.getVersion());
+            if (semConvStability.emitLegacyCicdSemConv()) {
+                spanBuilder
+                        .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_TYPE, stepType)
+                        .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_NAME, stepName);
+            }
+            if (semConvStability.emitOtelCicdSemConv()) {
+                spanBuilder
+                        .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_TASK_TYPE, stepType)
+                        .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_TASK_NAME, stepName);
+            }
 
             // Populate the attributes if any 'attributes' argument was passed to the 'withNewSpan' step.
             try {

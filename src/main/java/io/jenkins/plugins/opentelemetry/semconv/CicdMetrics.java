@@ -14,6 +14,8 @@ import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.api.metrics.ObservableLongMeasurement;
 import io.opentelemetry.semconv.ErrorAttributes;
 import io.opentelemetry.semconv.incubating.CicdIncubatingAttributes;
+import org.jenkinsci.plugins.workflow.pipelinegraphanalysis.GenericStatus;
+
 import java.util.List;
 
 public class CicdMetrics {
@@ -115,4 +117,25 @@ public class CicdMetrics {
         }
         return result.toString().toLowerCase();
     }
+
+    /**
+     * Convert a Jenkins {@link Result} to a an OpenTelemetry
+     * {@link CicdIncubatingAttributes#CICD_PIPELINE_TASK_RUN_RESULT} according to the
+     * <a href="https://opentelemetry.io/docs/specs/semconv/cicd/cicd-metrics/">OpenTelemetry
+     * CICD Semantic Conventions</a>
+     */
+    public static String fromJenkinsGenericResultToOtelCicdPipelineResult(GenericStatus result) {
+        if (result == null) {
+            return "#null#";
+        }
+        if (result.equals(GenericStatus.ABORTED)) {
+            return CicdIncubatingAttributes.CicdPipelineResultIncubatingValues.CANCELLATION;
+        } else if (result.equals(GenericStatus.FAILURE)) {
+            return CicdIncubatingAttributes.CicdPipelineResultIncubatingValues.FAILURE;
+        } else if (result.equals(GenericStatus.SUCCESS)) {
+            return CicdIncubatingAttributes.CicdPipelineResultIncubatingValues.SUCCESS;
+        }
+        return result.toString().toLowerCase();
+    }
+
 }
