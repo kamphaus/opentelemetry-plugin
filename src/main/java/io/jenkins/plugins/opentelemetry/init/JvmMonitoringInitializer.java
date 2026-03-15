@@ -52,7 +52,7 @@ public class JvmMonitoringInitializer implements OpenTelemetryLifecycleListener 
         ExperimentalMemoryPools.registerObservers(openTelemetry);
         Classes.registerObservers(openTelemetry);
         Cpu.registerObservers(openTelemetry);
-        GarbageCollector.registerObservers(openTelemetry);
+        GarbageCollector.registerObservers(openTelemetry, false);
         MemoryPools.registerObservers(openTelemetry);
         Threads.registerObservers(openTelemetry);
     }

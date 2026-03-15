@@ -39,6 +39,9 @@ public abstract class AbstractGitStepHandler implements StepHandler {
     public final void setSemConvStability(@NonNull JenkinsOpenTelemetryPluginConfiguration openTelemetry) {
         this.semConvStability = openTelemetry.getSemConvStability();
     }
+    public final void setSemConvStability(@NonNull SemConvStability semConvStability) {
+        this.semConvStability = semConvStability;
+    }
 
     public String searchGitUserName(@Nullable String credentialsId, @NonNull WorkflowRun run) {
         if (credentialsId == null) {
