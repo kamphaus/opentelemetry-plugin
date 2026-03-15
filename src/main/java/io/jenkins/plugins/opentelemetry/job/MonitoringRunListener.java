@@ -292,13 +292,14 @@ public class MonitoringRunListener extends OtelContextAwareAbstractRunListener
     @Override
     public void _onInitialize(@NonNull Run<?, ?> run) {
         LOGGER.log(Level.FINE, () -> run.getFullDisplayName() + " - onInitialize");
+        String metricPipelineName = getPipelineNameForMetrics(run);
 
         activeRunGauge.incrementAndGet();
         cicdPipelineRunActiveCounter.add(
                 1,
                 Attributes.of(
                         CicdIncubatingAttributes.CICD_PIPELINE_NAME,
-                        PIPELINE_NAME_OTHER, // FIXME CARDINALITY PROTECTION
+                        metricPipelineName,
                         CicdIncubatingAttributes.CICD_PIPELINE_RUN_STATE,
                         CicdIncubatingAttributes.CicdPipelineRunStateIncubatingValues.PENDING));
 
@@ -464,18 +465,19 @@ public class MonitoringRunListener extends OtelContextAwareAbstractRunListener
 
     @Override
     public void _onStarted(@NonNull Run<?, ?> run, @NonNull TaskListener listener) {
+        String metricPipelineName = getPipelineNameForMetrics(run);
         cicdPipelineRunActiveCounter.add(
                 -1,
                 Attributes.of(
                         CicdIncubatingAttributes.CICD_PIPELINE_NAME,
-                        PIPELINE_NAME_OTHER, // FIXME CARDINALITY PROTECTION
+                        metricPipelineName,
                         CicdIncubatingAttributes.CICD_PIPELINE_RUN_STATE,
                         CicdIncubatingAttributes.CicdPipelineRunStateIncubatingValues.PENDING));
         cicdPipelineRunActiveCounter.add(
                 1,
                 Attributes.of(
                         CicdIncubatingAttributes.CICD_PIPELINE_NAME,
-                        PIPELINE_NAME_OTHER, // FIXME CARDINALITY PROTECTION
+                        metricPipelineName,
                         CicdIncubatingAttributes.CICD_PIPELINE_RUN_STATE,
                         CicdIncubatingAttributes.CicdPipelineRunStateIncubatingValues.EXECUTING));
         try (Scope parentScope = endPipelinePhaseSpan(run)) {
@@ -493,18 +495,19 @@ public class MonitoringRunListener extends OtelContextAwareAbstractRunListener
 
     @Override
     public void _onCompleted(@NonNull Run<?, ?> run, @NonNull TaskListener listener) {
+        String metricPipelineName = getPipelineNameForMetrics(run);
         cicdPipelineRunActiveCounter.add(
                 -1,
                 Attributes.of(
                         CicdIncubatingAttributes.CICD_PIPELINE_NAME,
-                        PIPELINE_NAME_OTHER, // FIXME CARDINALITY PROTECTION
+                        metricPipelineName,
                         CicdIncubatingAttributes.CICD_PIPELINE_RUN_STATE,
                         CicdIncubatingAttributes.CicdPipelineRunStateIncubatingValues.EXECUTING));
         cicdPipelineRunActiveCounter.add(
                 1,
                 Attributes.of(
                         CicdIncubatingAttributes.CICD_PIPELINE_NAME,
-                        PIPELINE_NAME_OTHER, // FIXME CARDINALITY PROTECTION
+                        metricPipelineName,
                         CicdIncubatingAttributes.CICD_PIPELINE_RUN_STATE,
                         CicdIncubatingAttributes.CicdPipelineRunStateIncubatingValues.FINALIZING));
 
@@ -533,6 +536,24 @@ public class MonitoringRunListener extends OtelContextAwareAbstractRunListener
         return newCurrentSpan.makeCurrent();
     }
 
+    private String getPipelineNameForMetrics(@NonNull Run<?, ?> run) {
+        // TODO perf optimization, reuse resolution done in `#_onInitialize(run)`
+        String pipelineShortName = getRunHandlers().stream()
+                .filter(rh -> rh.matches(run))
+                .findFirst()
+                .orElseThrow((Supplier<RuntimeException>) () ->
+                        new IllegalStateException("No RunHandler found for run " + run.getClass() + " - " + run))
+                .getPipelineShortName(run);
+        // Use allow and deny lists to determine whether the pipeline name or a generic other category should be used
+        // for cardinality protection when used as a metric attribute.
+        return runDurationHistogramAllowList.matcher(pipelineShortName).matches()
+                && !runDurationHistogramDenyList
+                        .matcher(pipelineShortName)
+                        .matches()
+                    ? pipelineShortName
+                    : PIPELINE_NAME_OTHER;
+    }
+
     @Override
     public void _onFinalized(@NonNull Run<?, ?> run) {
 
@@ -548,6 +569,7 @@ public class MonitoringRunListener extends OtelContextAwareAbstractRunListener
                         ExtendedJenkinsAttributes.CI_PIPELINE_MULTIBRANCH_TYPE, OtelUtils.getMultibranchType(run));
             }
 
+            String metricPipelineName = getPipelineNameForMetrics(run);
             Result runResult = run.getResult();
             if (runResult == null) {
                 // illegal state, job should no longer be running
@@ -573,7 +595,7 @@ public class MonitoringRunListener extends OtelContextAwareAbstractRunListener
                             1,
                             Attributes.of(
                                     CicdIncubatingAttributes.CICD_PIPELINE_NAME,
-                                    PIPELINE_NAME_OTHER, // FIXME IMPLEMENT CARDINALITY PROTECTION
+                                    metricPipelineName,
                                     ErrorAttributes.ERROR_TYPE,
                                     runResult.toString()));
                 } else if (Result.ABORTED.equals(runResult) || Result.NOT_BUILT.equals(runResult)) {
@@ -582,7 +604,7 @@ public class MonitoringRunListener extends OtelContextAwareAbstractRunListener
                             1,
                             Attributes.of(
                                     CicdIncubatingAttributes.CICD_PIPELINE_NAME,
-                                    PIPELINE_NAME_OTHER, // FIXME IMPLEMENT CARDINALITY PROTECTION
+                                    metricPipelineName,
                                     ErrorAttributes.ERROR_TYPE,
                                     runResult.toString()));
                 }
@@ -623,25 +645,12 @@ public class MonitoringRunListener extends OtelContextAwareAbstractRunListener
                 this.runAbortedCounter.add(1);
             }
 
-            // TODO perf optimization, reuse resolution done in `#_onInitialize(run)`
-            String pipelineShortName = getRunHandlers().stream()
-                    .filter(rh -> rh.matches(run))
-                    .findFirst()
-                    .orElseThrow((Supplier<RuntimeException>) () ->
-                            new IllegalStateException("No RunHandler found for run " + run.getClass() + " - " + run))
-                    .getPipelineShortName(run);
-            String pipelineName =
-                    runDurationHistogramAllowList.matcher(pipelineShortName).matches()
-                                    && !runDurationHistogramDenyList
-                                            .matcher(pipelineShortName)
-                                            .matches()
-                            ? pipelineShortName
-                            : PIPELINE_NAME_OTHER;
+
             runDurationHistogram.record(
                     TimeUnit.SECONDS.convert(run.getDuration(), TimeUnit.MILLISECONDS),
                     Attributes.of(
                             ExtendedJenkinsAttributes.CI_PIPELINE_ID,
-                            pipelineName,
+                            metricPipelineName,
                             ExtendedJenkinsAttributes.CI_PIPELINE_RUN_RESULT,
                             result.toString()));
 
@@ -650,7 +659,7 @@ public class MonitoringRunListener extends OtelContextAwareAbstractRunListener
                     TimeUnit.SECONDS.convert(run.getDuration(), TimeUnit.MILLISECONDS),
                     Attributes.of(
                             CicdIncubatingAttributes.CICD_PIPELINE_NAME,
-                            pipelineName,
+                            metricPipelineName,
                             CicdIncubatingAttributes.CICD_PIPELINE_RUN_STATE,
                             CicdIncubatingAttributes.CicdPipelineRunStateIncubatingValues.FINALIZING,
                             CicdIncubatingAttributes.CICD_PIPELINE_RESULT,
@@ -660,7 +669,7 @@ public class MonitoringRunListener extends OtelContextAwareAbstractRunListener
                     -1,
                     Attributes.of(
                             CicdIncubatingAttributes.CICD_PIPELINE_NAME,
-                            PIPELINE_NAME_OTHER, // FIXME CARDINALITY PROTECTION
+                            metricPipelineName,
                             CicdIncubatingAttributes.CICD_PIPELINE_RUN_STATE,
                             CicdIncubatingAttributes.CicdPipelineRunStateIncubatingValues.FINALIZING));
         } finally {
