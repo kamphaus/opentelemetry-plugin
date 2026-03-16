@@ -77,23 +77,19 @@ public class MonitoringComputerListener extends ComputerListener implements Open
                             .getAttributes()
                             .put(AttributeKey.stringKey(attribute.getKey()), attribute.getValue());
                 }
-                var actionAttributes = openTelemetryAttributesAction
-                    .getAttributes();
+                var actionAttributes = openTelemetryAttributesAction.getAttributes();
                 if (semConvStability.emitLegacyCicdSemConv()) {
-                    actionAttributes
-                            .put(
-                                ExtendedJenkinsAttributes.JENKINS_COMPUTER_NAME,
-                                ExtendedJenkinsAttributes.JENKINS_COMPUTER_NAME_CONTROLLER);
+                    actionAttributes.put(
+                            ExtendedJenkinsAttributes.JENKINS_COMPUTER_NAME,
+                            ExtendedJenkinsAttributes.JENKINS_COMPUTER_NAME_CONTROLLER);
                 }
                 if (semConvStability.emitOtelCicdSemConv()) {
-                    actionAttributes
-                            .put(
-                                CicdIncubatingAttributes.CICD_WORKER_ID,
-                                ExtendedJenkinsAttributes.JENKINS_COMPUTER_NAME_CONTROLLER);
-                    actionAttributes
-                            .put(
-                                CicdIncubatingAttributes.CICD_WORKER_NAME,
-                                ExtendedJenkinsAttributes.JENKINS_COMPUTER_NAME_CONTROLLER);
+                    actionAttributes.put(
+                            CicdIncubatingAttributes.CICD_WORKER_ID,
+                            ExtendedJenkinsAttributes.JENKINS_COMPUTER_NAME_CONTROLLER);
+                    actionAttributes.put(
+                            CicdIncubatingAttributes.CICD_WORKER_NAME,
+                            ExtendedJenkinsAttributes.JENKINS_COMPUTER_NAME_CONTROLLER);
                 }
                 LOGGER.log(
                         Level.FINER,
@@ -167,20 +163,11 @@ public class MonitoringComputerListener extends ComputerListener implements Open
         }
         var actionAttributes = openTelemetryAttributesAction.getAttributes();
         if (semConvStability.emitLegacyCicdSemConv()) {
-            actionAttributes
-                    .put(
-                        ExtendedJenkinsAttributes.JENKINS_COMPUTER_NAME,
-                        computer.getName());
+            actionAttributes.put(ExtendedJenkinsAttributes.JENKINS_COMPUTER_NAME, computer.getName());
         }
         if (semConvStability.emitOtelCicdSemConv()) {
-            actionAttributes
-                .put(
-                    CicdIncubatingAttributes.CICD_WORKER_ID,
-                    computer.getName());
-            actionAttributes
-                .put(
-                    CicdIncubatingAttributes.CICD_WORKER_NAME,
-                    computer.getName());
+            actionAttributes.put(CicdIncubatingAttributes.CICD_WORKER_ID, computer.getName());
+            actionAttributes.put(CicdIncubatingAttributes.CICD_WORKER_NAME, computer.getName());
         }
 
         LOGGER.log(Level.FINE, () -> "preOnline(" + computer + "): " + openTelemetryAttributesAction);

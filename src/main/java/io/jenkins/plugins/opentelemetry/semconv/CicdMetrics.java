@@ -14,9 +14,8 @@ import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.api.metrics.ObservableLongMeasurement;
 import io.opentelemetry.semconv.ErrorAttributes;
 import io.opentelemetry.semconv.incubating.CicdIncubatingAttributes;
-import org.jenkinsci.plugins.workflow.pipelinegraphanalysis.GenericStatus;
-
 import java.util.List;
+import org.jenkinsci.plugins.workflow.pipelinegraphanalysis.GenericStatus;
 
 public class CicdMetrics {
     // FIXME WHAT ARE THE SPECS FOR THESE BUCKETS?
@@ -134,5 +133,4 @@ public class CicdMetrics {
         }
         return result.toString().toLowerCase();
     }
-
 }

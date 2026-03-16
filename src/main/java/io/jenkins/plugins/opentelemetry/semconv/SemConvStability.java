@@ -35,5 +35,4 @@ public enum SemConvStability {
     public static String getDefaultValue() {
         return JENKINS.name();
     }
-
 }

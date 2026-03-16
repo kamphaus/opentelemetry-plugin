@@ -14,17 +14,15 @@ import io.jenkins.plugins.opentelemetry.semconv.ExtendedJenkinsAttributes;
 import io.jenkins.plugins.opentelemetry.semconv.SemConvStability;
 import io.opentelemetry.api.trace.SpanBuilder;
 import io.opentelemetry.api.trace.Tracer;
-import java.util.Map;
-
 import io.opentelemetry.semconv.incubating.CicdIncubatingAttributes;
+import java.util.Map;
+import javax.inject.Inject;
 import jenkins.YesNoMaybe;
 import org.jenkinsci.plugins.workflow.actions.ArgumentsAction;
 import org.jenkinsci.plugins.workflow.cps.nodes.StepAtomNode;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.support.steps.build.BuildTriggerStep;
-
-import javax.inject.Inject;
 
 @Extension(optional = true, dynamicLoadable = YesNoMaybe.YES)
 public class BuildTriggerStepHandler implements StepHandler {

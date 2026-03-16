@@ -772,11 +772,11 @@ public class JenkinsOpenTelemetryPluginConfiguration extends GlobalConfiguration
      * @return ok if the form input was valid
      */
     public FormValidation doCheckSemConvStability(@QueryParameter String value) {
-        if (configuredSemConvStability != null && configuredSemConvStability.name().equals(value)) {
+        if (configuredSemConvStability != null
+                && configuredSemConvStability.name().equals(value)) {
             return FormValidation.ok();
         }
-        return FormValidation.warning(
-            "A restart of Jenkins is required for this value to take effect");
+        return FormValidation.warning("A restart of Jenkins is required for this value to take effect");
     }
 
     /**

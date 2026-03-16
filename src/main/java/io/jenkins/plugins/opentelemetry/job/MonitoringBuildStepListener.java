@@ -27,12 +27,11 @@ import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
+import io.opentelemetry.semconv.incubating.CicdIncubatingAttributes;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.inject.Inject;
-
-import io.opentelemetry.semconv.incubating.CicdIncubatingAttributes;
 import jenkins.YesNoMaybe;
 
 @Extension(dynamicLoadable = YesNoMaybe.YES)
@@ -67,12 +66,10 @@ public class MonitoringBuildStepListener extends BuildStepListener {
                             ExtendedJenkinsAttributes.JENKINS_STEP_PLUGIN_VERSION,
                             stepPlugin.isUnknown() ? jenkinsVersion : stepPlugin.getVersion());
             if (semConvStability.emitLegacyCicdSemConv()) {
-                spanBuilder
-                        .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_NAME, stepName);
+                spanBuilder.setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_NAME, stepName);
             }
             if (semConvStability.emitOtelCicdSemConv()) {
-                spanBuilder
-                        .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_TASK_NAME, stepName);
+                spanBuilder.setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_TASK_NAME, stepName);
             }
 
             Span atomicStepSpan = spanBuilder.startSpan();

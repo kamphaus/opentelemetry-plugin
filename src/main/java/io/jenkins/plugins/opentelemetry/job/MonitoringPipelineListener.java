@@ -128,15 +128,15 @@ public class MonitoringPipelineListener extends AbstractPipelineListener
                 agentSpanBuilder
                         .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_TYPE, stepType)
                         .setAttribute(
-                            ExtendedJenkinsAttributes.JENKINS_STEP_NAME,
-                            ExtendedJenkinsAttributes.AGENT); // FIXME verify it's the right semantic and value
+                                ExtendedJenkinsAttributes.JENKINS_STEP_NAME,
+                                ExtendedJenkinsAttributes.AGENT); // FIXME verify it's the right semantic and value
             }
             if (semConvStability.emitOtelCicdSemConv()) {
                 agentSpanBuilder
                         .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_TASK_TYPE, stepType)
                         .setAttribute(
-                            CicdIncubatingAttributes.CICD_PIPELINE_TASK_NAME,
-                            ExtendedJenkinsAttributes.AGENT); // FIXME verify it's the right semantic and value
+                                CicdIncubatingAttributes.CICD_PIPELINE_TASK_NAME,
+                                ExtendedJenkinsAttributes.AGENT); // FIXME verify it's the right semantic and value
             }
             if (agentLabel != null) {
                 agentSpanBuilder.setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_AGENT_LABEL, agentLabel);
@@ -162,26 +162,26 @@ public class MonitoringPipelineListener extends AbstractPipelineListener
                             .setAttribute(
                                     ExtendedJenkinsAttributes.JENKINS_STEP_TYPE,
                                     getStepType(
-                                        stepStartNode,
-                                        stepStartNode.getDescriptor(),
-                                        ExtendedJenkinsAttributes.STEP_NODE))
+                                            stepStartNode,
+                                            stepStartNode.getDescriptor(),
+                                            ExtendedJenkinsAttributes.STEP_NODE))
                             .setAttribute(
-                                ExtendedJenkinsAttributes.JENKINS_STEP_NAME,
-                                ExtendedJenkinsAttributes
-                                    .AGENT_ALLOCATE); // FIXME verify it's the right semantic and value
+                                    ExtendedJenkinsAttributes.JENKINS_STEP_NAME,
+                                    ExtendedJenkinsAttributes
+                                            .AGENT_ALLOCATE); // FIXME verify it's the right semantic and value
                 }
                 if (semConvStability.emitOtelCicdSemConv()) {
                     allocateAgentSpanBuilder
                             .setAttribute(
                                     CicdIncubatingAttributes.CICD_PIPELINE_TASK_TYPE,
                                     getStepType(
-                                        stepStartNode,
-                                        stepStartNode.getDescriptor(),
-                                        ExtendedJenkinsAttributes.STEP_NODE))
+                                            stepStartNode,
+                                            stepStartNode.getDescriptor(),
+                                            ExtendedJenkinsAttributes.STEP_NODE))
                             .setAttribute(
                                     CicdIncubatingAttributes.CICD_PIPELINE_TASK_NAME,
                                     ExtendedJenkinsAttributes
-                                        .AGENT_ALLOCATE); // FIXME verify it's the right semantic and value
+                                            .AGENT_ALLOCATE); // FIXME verify it's the right semantic and value
                 }
                 if (agentLabel != null) {
                     allocateAgentSpanBuilder.setAttribute(
@@ -304,15 +304,15 @@ public class MonitoringPipelineListener extends AbstractPipelineListener
             spanBuilder
                     .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_TYPE, stepType)
                     .setAttribute(
-                        ExtendedJenkinsAttributes.JENKINS_STEP_NAME,
-                        getStepName(node, ExtendedJenkinsAttributes.STEP_NAME));
+                            ExtendedJenkinsAttributes.JENKINS_STEP_NAME,
+                            getStepName(node, ExtendedJenkinsAttributes.STEP_NAME));
         }
         if (semConvStability.emitOtelCicdSemConv()) {
             spanBuilder
                     .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_TASK_TYPE, stepType)
                     .setAttribute(
-                        CicdIncubatingAttributes.CICD_PIPELINE_TASK_NAME,
-                        getStepName(node, ExtendedJenkinsAttributes.STEP_NAME));
+                            CicdIncubatingAttributes.CICD_PIPELINE_TASK_NAME,
+                            getStepName(node, ExtendedJenkinsAttributes.STEP_NAME));
         }
 
         Span atomicStepSpan = spanBuilder.startSpan();
@@ -418,7 +418,6 @@ public class MonitoringPipelineListener extends AbstractPipelineListener
             Span atomicStepSpan = getTracer()
                     .spanBuilder("Parallel branch: " + branchName)
                     .setParent(Context.current())
-
                     .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_ID, stepStartNode.getId())
                     .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_PLUGIN_NAME, stepPlugin.getName())
                     .setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_PLUGIN_VERSION, stepPlugin.getVersion())
@@ -504,7 +503,9 @@ public class MonitoringPipelineListener extends AbstractPipelineListener
                     span.setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_RESULT, status.toString());
                 }
                 if (semConvStability.emitOtelCicdSemConv()) {
-                    span.setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_TASK_RUN_RESULT, CicdMetrics.fromJenkinsGenericResultToOtelCicdPipelineResult(status));
+                    span.setAttribute(
+                            CicdIncubatingAttributes.CICD_PIPELINE_TASK_RUN_RESULT,
+                            CicdMetrics.fromJenkinsGenericResultToOtelCicdPipelineResult(status));
                 }
             }
 
@@ -625,20 +626,11 @@ public class MonitoringPipelineListener extends AbstractPipelineListener
                     actionAttributes.put(HostIncubatingAttributes.HOST_NAME, hostName);
                 }
                 if (semConvStability.emitLegacyCicdSemConv()) {
-                    actionAttributes
-                            .put(
-                                ExtendedJenkinsAttributes.JENKINS_COMPUTER_NAME,
-                                computer.getName());
+                    actionAttributes.put(ExtendedJenkinsAttributes.JENKINS_COMPUTER_NAME, computer.getName());
                 }
                 if (semConvStability.emitOtelCicdSemConv()) {
-                    actionAttributes
-                            .put(
-                                CicdIncubatingAttributes.CICD_WORKER_ID,
-                                computer.getName());
-                    actionAttributes
-                            .put(
-                                CicdIncubatingAttributes.CICD_WORKER_NAME,
-                                computer.getName());
+                    actionAttributes.put(CicdIncubatingAttributes.CICD_WORKER_ID, computer.getName());
+                    actionAttributes.put(CicdIncubatingAttributes.CICD_WORKER_NAME, computer.getName());
                 }
                 computer.addAction(openTelemetryAttributesAction);
             }

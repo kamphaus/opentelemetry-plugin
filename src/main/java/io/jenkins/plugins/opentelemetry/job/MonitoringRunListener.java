@@ -177,8 +177,8 @@ public class MonitoringRunListener extends OtelContextAwareAbstractRunListener
         // else shall we use use no-op metrics
         SemConvStability semConvStability = getSemConvStability();
         Meter newSemConventionsMeter = semConvStability.emitOtelCicdSemConv()
-            ? meter
-            : OpenTelemetry.noop().getMeter("jenkins.opentelemetry");
+                ? meter
+                : OpenTelemetry.noop().getMeter("jenkins.opentelemetry");
         cicdPipelineRunDurationHistogram = CicdMetrics.newCiCdPipelineRunDurationHistogram(newSemConventionsMeter);
         cicdPipelineRunActiveCounter = CicdMetrics.newCiCdPipelineRunActiveCounter(newSemConventionsMeter);
         cicdPipelineRunErrorsCounter = CicdMetrics.newCiCdPipelineRunErrorsCounter(newSemConventionsMeter);
@@ -310,7 +310,8 @@ public class MonitoringRunListener extends OtelContextAwareAbstractRunListener
                         () -> new IllegalStateException("No RunHandler found for run " + run.getClass() + " - " + run));
         String pipelineShortName = runHandler.getPipelineShortName(run);
         SpanBuilder rootSpanBuilder = getTracer()
-                .spanBuilder(CicdIncubatingAttributes.CicdPipelineActionNameIncubatingValues.BUILD + " " + pipelineShortName);
+                .spanBuilder(CicdIncubatingAttributes.CicdPipelineActionNameIncubatingValues.BUILD + " "
+                        + pipelineShortName);
         runHandler.enrichPipelineRunSpan(run, rootSpanBuilder);
         rootSpanBuilder.setSpanKind(SpanKind.SERVER);
         String runUrl = Optional.ofNullable(Jenkins.get().getRootUrl()).orElse("") + run.getUrl();
@@ -321,14 +322,16 @@ public class MonitoringRunListener extends OtelContextAwareAbstractRunListener
         if (getSemConvStability().emitLegacyCicdSemConv()) {
             rootSpanBuilder
                     .setAttribute(
-                        ExtendedJenkinsAttributes.CI_PIPELINE_NAME,
-                        run.getParent().getFullDisplayName())
+                            ExtendedJenkinsAttributes.CI_PIPELINE_NAME,
+                            run.getParent().getFullDisplayName())
                     .setAttribute(ExtendedJenkinsAttributes.CI_PIPELINE_RUN_URL, runUrl)
                     .setAttribute(ExtendedJenkinsAttributes.CI_PIPELINE_RUN_NUMBER, (long) run.getNumber());
         }
         if (getSemConvStability().emitOtelCicdSemConv()) {
             rootSpanBuilder
-                    .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_ACTION_NAME, CicdIncubatingAttributes.CicdPipelineActionNameIncubatingValues.BUILD)
+                    .setAttribute(
+                            CicdIncubatingAttributes.CICD_PIPELINE_ACTION_NAME,
+                            CicdIncubatingAttributes.CicdPipelineActionNameIncubatingValues.BUILD)
                     .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_NAME, pipelineShortName)
                     .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_RUN_URL_FULL, runUrl)
                     .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_RUN_ID, String.valueOf(run.getNumber()));
@@ -541,17 +544,17 @@ public class MonitoringRunListener extends OtelContextAwareAbstractRunListener
         String pipelineShortName = getRunHandlers().stream()
                 .filter(rh -> rh.matches(run))
                 .findFirst()
-                .orElseThrow((Supplier<RuntimeException>) () ->
-                        new IllegalStateException("No RunHandler found for run " + run.getClass() + " - " + run))
+                .orElseThrow((Supplier<RuntimeException>)
+                        () -> new IllegalStateException("No RunHandler found for run " + run.getClass() + " - " + run))
                 .getPipelineShortName(run);
         // Use allow and deny lists to determine whether the pipeline name or a generic other category should be used
         // for cardinality protection when used as a metric attribute.
         return runDurationHistogramAllowList.matcher(pipelineShortName).matches()
-                && !runDurationHistogramDenyList
-                        .matcher(pipelineShortName)
-                        .matches()
-                    ? pipelineShortName
-                    : PIPELINE_NAME_OTHER;
+                        && !runDurationHistogramDenyList
+                                .matcher(pipelineShortName)
+                                .matches()
+                ? pipelineShortName
+                : PIPELINE_NAME_OTHER;
     }
 
     @Override
@@ -582,7 +585,8 @@ public class MonitoringRunListener extends OtelContextAwareAbstractRunListener
                 }
                 if (getSemConvStability().emitOtelCicdSemConv()) {
                     parentSpan.setAttribute(
-                            CicdIncubatingAttributes.CICD_PIPELINE_RESULT, CicdMetrics.fromJenkinsResultToOtelCicdPipelineResult(runResult));
+                            CicdIncubatingAttributes.CICD_PIPELINE_RESULT,
+                            CicdMetrics.fromJenkinsResultToOtelCicdPipelineResult(runResult));
                 }
 
                 if (Result.SUCCESS.equals(runResult)) {
@@ -616,7 +620,8 @@ public class MonitoringRunListener extends OtelContextAwareAbstractRunListener
                     parentSpan.setAttribute(ExtendedJenkinsAttributes.JENKINS_STEP_AGENT_LABEL, node.getLabelString());
                     if (getSemConvStability().emitLegacyCicdSemConv()) {
                         parentSpan.setAttribute(ExtendedJenkinsAttributes.CI_PIPELINE_AGENT_ID, node.getNodeName());
-                        parentSpan.setAttribute(ExtendedJenkinsAttributes.CI_PIPELINE_AGENT_NAME, node.getDisplayName());
+                        parentSpan.setAttribute(
+                                ExtendedJenkinsAttributes.CI_PIPELINE_AGENT_NAME, node.getDisplayName());
                     }
                     if (getSemConvStability().emitOtelCicdSemConv()) {
                         parentSpan.setAttribute(CicdIncubatingAttributes.CICD_WORKER_ID, node.getNodeName());
@@ -644,7 +649,6 @@ public class MonitoringRunListener extends OtelContextAwareAbstractRunListener
             } else {
                 this.runAbortedCounter.add(1);
             }
-
 
             runDurationHistogram.record(
                     TimeUnit.SECONDS.convert(run.getDuration(), TimeUnit.MILLISECONDS),

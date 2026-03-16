@@ -21,7 +21,6 @@ import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.instrumentation.resources.ProcessResourceProvider;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.metrics.export.MetricReader;
-
 import java.util.Objects;
 import java.util.Optional;
 import javax.annotation.PostConstruct;
@@ -98,8 +97,8 @@ public class JenkinsControllerOpenTelemetry implements ExtensionPoint {
     @Deprecated
     protected MetricReader getMetricReader() {
         return (MetricReader) Optional.ofNullable(openTelemetry)
-            .map(ReconfigurableOpenTelemetry::getMetricReader)
-            .orElseThrow(() -> new IllegalStateException("OpenTelemetry not initialized"));
+                .map(ReconfigurableOpenTelemetry::getMetricReader)
+                .orElseThrow(() -> new IllegalStateException("OpenTelemetry not initialized"));
     }
 
     public void initialize(@NonNull OpenTelemetryConfiguration configuration) {

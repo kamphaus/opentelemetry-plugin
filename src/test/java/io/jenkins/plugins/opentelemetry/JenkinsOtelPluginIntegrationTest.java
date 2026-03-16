@@ -51,7 +51,7 @@ public class JenkinsOtelPluginIntegrationTest extends BaseIntegrationTest {
 
     @Test
     public void testSimplePipeline() throws Exception {
-        //assumeFalse(SystemUtils.IS_OS_WINDOWS);
+        // assumeFalse(SystemUtils.IS_OS_WINDOWS);
         // BEFORE
 
         String pipelineScript = "def xsh(cmd) {if (isUnix()) {sh cmd} else {bat cmd}};\n" + "node() {\n"
@@ -88,13 +88,15 @@ public class JenkinsOtelPluginIntegrationTest extends BaseIntegrationTest {
         MatcherAssert.assertThat(spans.cardinality(), CoreMatchers.is(10L));
 
         forceMetricsExport();
-        Map<String, MetricData> exportedMetrics = InMemoryMetricExporterUtils.getLastExportedMetricByMetricName(InMemoryMetricExporterProvider.LAST_CREATED_INSTANCE.getFinishedMetricItems());
+        Map<String, MetricData> exportedMetrics = InMemoryMetricExporterUtils.getLastExportedMetricByMetricName(
+                InMemoryMetricExporterProvider.LAST_CREATED_INSTANCE.getFinishedMetricItems());
         dumpMetrics(exportedMetrics);
         MetricData runStartedCounterData = exportedMetrics.get(JenkinsMetrics.CI_PIPELINE_RUN_STARTED);
         MatcherAssert.assertThat(runStartedCounterData, CoreMatchers.notNullValue());
         // TODO TEST METRICS WITH PROPER RESET BETWEEN TESTS
         MatcherAssert.assertThat(runStartedCounterData.getType(), CoreMatchers.is(MetricDataType.LONG_SUM));
-        Collection<LongPointData> metricPoints = runStartedCounterData.getLongSumData().getPoints();
+        Collection<LongPointData> metricPoints =
+                runStartedCounterData.getLongSumData().getPoints();
         MatcherAssert.assertThat(Iterables.getLast(metricPoints).getValue(), CoreMatchers.is(1L));
         // we dont test the metric CI_PIPELINE_RUN_COMPLETED because there is flakiness on it
     }

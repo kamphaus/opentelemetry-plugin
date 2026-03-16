@@ -45,15 +45,13 @@ public class JenkinsOpenTelemetryPluginConfigurationIntegrationTest {
     // This only works if no scrape is currently in progress (use high scrape period for tests).
     protected void forceMetricsExport(JenkinsRule jenkinsRule) {
         ExtensionList<JenkinsControllerOpenTelemetry> jenkinsOpenTelemetries =
-            jenkinsRule.getInstance().getExtensionList(JenkinsControllerOpenTelemetry.class);
+                jenkinsRule.getInstance().getExtensionList(JenkinsControllerOpenTelemetry.class);
         verify(
-            jenkinsOpenTelemetries.size() == 1,
-            "Number of jenkinsControllerOpenTelemetrys: %s",
-            jenkinsOpenTelemetries.size());
+                jenkinsOpenTelemetries.size() == 1,
+                "Number of jenkinsControllerOpenTelemetrys: %s",
+                jenkinsOpenTelemetries.size());
         JenkinsControllerOpenTelemetry jenkinsControllerOpenTelemetry = jenkinsOpenTelemetries.get(0);
-        jenkinsControllerOpenTelemetry
-            .getMetricReader()
-            .forceFlush();
+        jenkinsControllerOpenTelemetry.getMetricReader().forceFlush();
     }
 
     @Test

@@ -23,13 +23,11 @@ import io.opentelemetry.semconv.ServerAttributes;
 import io.opentelemetry.semconv.UrlAttributes;
 import io.opentelemetry.semconv.incubating.PeerIncubatingAttributes;
 import io.opentelemetry.semconv.incubating.RpcIncubatingAttributes;
-import java.net.URISyntaxException;
-
 import io.opentelemetry.semconv.incubating.VcsIncubatingAttributes;
+import java.net.URISyntaxException;
+import javax.inject.Inject;
 import org.eclipse.jgit.transport.URIish;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
-
-import javax.inject.Inject;
 
 public abstract class AbstractGitStepHandler implements StepHandler {
 
@@ -39,6 +37,7 @@ public abstract class AbstractGitStepHandler implements StepHandler {
     public final void setSemConvStability(@NonNull JenkinsOpenTelemetryPluginConfiguration openTelemetry) {
         this.semConvStability = openTelemetry.getSemConvStability();
     }
+
     public final void setSemConvStability(@NonNull SemConvStability semConvStability) {
         this.semConvStability = semConvStability;
     }
@@ -150,7 +149,9 @@ public abstract class AbstractGitStepHandler implements StepHandler {
             }
             if (semConvStability.emitOtelCicdSemConv()) {
                 spanBuilder.setAttribute(VcsIncubatingAttributes.VCS_REF_HEAD_NAME, gitBranch);
-                spanBuilder.setAttribute(VcsIncubatingAttributes.VCS_REF_HEAD_TYPE, VcsIncubatingAttributes.VcsRefHeadTypeIncubatingValues.BRANCH);
+                spanBuilder.setAttribute(
+                        VcsIncubatingAttributes.VCS_REF_HEAD_TYPE,
+                        VcsIncubatingAttributes.VcsRefHeadTypeIncubatingValues.BRANCH);
             }
         }
         if (!Strings.isNullOrEmpty(gitUserName)) {

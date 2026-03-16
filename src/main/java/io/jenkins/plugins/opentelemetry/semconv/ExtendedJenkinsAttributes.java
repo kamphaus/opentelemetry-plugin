@@ -36,6 +36,7 @@ public final class ExtendedJenkinsAttributes extends JenkinsAttributes {
      */
     @Deprecated
     public static final AttributeKey<String> CI_PIPELINE_NAME = AttributeKey.stringKey("ci.pipeline.name");
+
     public static final AttributeKey<String> CI_PIPELINE_TEMPLATE_ID =
             AttributeKey.stringKey("ci.pipeline.template.id");
     public static final AttributeKey<String> CI_PIPELINE_TEMPLATE_URL =
