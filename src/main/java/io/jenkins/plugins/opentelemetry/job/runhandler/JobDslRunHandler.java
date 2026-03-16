@@ -58,7 +58,7 @@ public class JobDslRunHandler implements RunHandler {
         // TODO understand the difference between seedJobAction.getTemplateJob() and seedJobAction.getSeedJob()
         Optional<Item> seedJob = Optional.ofNullable(seedJobAction.getSeedJob());
 
-        return collapseJobName
+        return !collapseJobName
                 ? job.getFullName()
                 : seedJob.map(Item::getFullName)
                         .map(fn -> "Job from seed '" + fn + "'")
