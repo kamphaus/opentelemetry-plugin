@@ -51,7 +51,7 @@ public class JenkinsExecutorMonitoringInitializer implements OpenTelemetryLifecy
     }
 
     @Inject
-    public void setSemConvStability(JenkinsOpenTelemetryPluginConfiguration openTelemetry) {
+    public synchronized void setSemConvStability(JenkinsOpenTelemetryPluginConfiguration openTelemetry) {
         this.semConvStability = openTelemetry.getSemConvStability();
     }
 
