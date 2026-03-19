@@ -66,6 +66,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
+
 import jenkins.model.CauseOfInterruption;
 import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
@@ -87,6 +88,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest2;
+import org.kohsuke.stapler.interceptor.RequirePOST;
 
 @Extension(
         ordinal =
@@ -608,7 +610,9 @@ public class JenkinsOpenTelemetryPluginConfiguration extends GlobalConfiguration
         this.semConvStability = semConvStability;
     }
 
+    @RequirePOST
     public ListBoxModel doFillSemConvStabilityItems() {
+        Jenkins.get().checkPermission(Jenkins.ADMINISTER);
         ListBoxModel items = new ListBoxModel();
         for (SemConvStability semConvStability : SemConvStability.values()) {
             items.add(semConvStability.getDisplayName(), semConvStability.name());
@@ -771,7 +775,9 @@ public class JenkinsOpenTelemetryPluginConfiguration extends GlobalConfiguration
      * @param value the semConvStability flag
      * @return ok if the form input was valid
      */
+    @RequirePOST
     public FormValidation doCheckSemConvStability(@QueryParameter String value) {
+        Jenkins.get().checkPermission(Jenkins.ADMINISTER);
         if (configuredSemConvStability != null
                 && configuredSemConvStability.name().equals(value)) {
             return FormValidation.ok();
