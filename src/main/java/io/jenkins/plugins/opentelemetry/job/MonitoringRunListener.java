@@ -324,8 +324,7 @@ public class MonitoringRunListener extends OtelContextAwareAbstractRunListener
                     .setAttribute(
                             ExtendedJenkinsAttributes.CI_PIPELINE_NAME,
                             run.getParent().getFullDisplayName())
-                    .setAttribute(ExtendedJenkinsAttributes.CI_PIPELINE_RUN_URL, runUrl)
-                    .setAttribute(ExtendedJenkinsAttributes.CI_PIPELINE_RUN_NUMBER, (long) run.getNumber());
+                    .setAttribute(ExtendedJenkinsAttributes.CI_PIPELINE_RUN_URL, runUrl);
         }
         if (getSemConvStability().emitOtelCicdSemConv()) {
             rootSpanBuilder
@@ -334,12 +333,13 @@ public class MonitoringRunListener extends OtelContextAwareAbstractRunListener
                             CicdIncubatingAttributes.CicdPipelineActionNameIncubatingValues.BUILD)
                     .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_NAME, pipelineShortName)
                     .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_RUN_URL_FULL, runUrl)
-                    .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_RUN_ID, String.valueOf(run.getNumber()));
+                    .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_RUN_ID, run.getParent().getFullName() + "/" + run.getNumber());
         }
         rootSpanBuilder
                 .setAttribute(
                         ExtendedJenkinsAttributes.CI_PIPELINE_ID,
                         run.getParent().getFullName())
+                .setAttribute(ExtendedJenkinsAttributes.CI_PIPELINE_RUN_NUMBER, (long) run.getNumber())
                 .setAttribute(ExtendedJenkinsAttributes.CI_PIPELINE_TYPE, OtelUtils.getProjectType(run));
 
         // CULPRITS
