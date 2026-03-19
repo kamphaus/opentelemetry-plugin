@@ -333,7 +333,9 @@ public class MonitoringRunListener extends OtelContextAwareAbstractRunListener
                             CicdIncubatingAttributes.CicdPipelineActionNameIncubatingValues.BUILD)
                     .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_NAME, pipelineShortName)
                     .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_RUN_URL_FULL, runUrl)
-                    .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_RUN_ID, run.getParent().getFullName() + "/" + run.getNumber());
+                    .setAttribute(
+                            CicdIncubatingAttributes.CICD_PIPELINE_RUN_ID,
+                            run.getParent().getFullName() + "/" + run.getNumber());
         }
         rootSpanBuilder
                 .setAttribute(
