@@ -22,14 +22,13 @@ import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.api.metrics.ObservableLongMeasurement;
-import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.semconv.incubating.CicdIncubatingAttributes;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import jenkins.YesNoMaybe;
 import jenkins.model.Jenkins;
@@ -44,8 +43,6 @@ public class JenkinsExecutorMonitoringInitializer implements OpenTelemetryLifecy
 
     private SemConvStability semConvStability;
 
-    final AtomicBoolean initialized = new AtomicBoolean(false);
-
     public JenkinsExecutorMonitoringInitializer() {
         logger.log(Level.FINE, () -> "JenkinsExecutorMonitoringInitializer constructor");
     }
@@ -55,19 +52,10 @@ public class JenkinsExecutorMonitoringInitializer implements OpenTelemetryLifecy
         this.semConvStability = openTelemetry.getSemConvStability();
     }
 
-    @Override
-    public synchronized void afterConfiguration(ConfigProperties configProperties) {
-        if (initialized.get()) {
-            logger.log(
-                    Level.FINE,
-                    () -> "JenkinsExecutorMonitoringInitializer already initialized. "
-                            + "This component doesn't support reconfiguration beyond changing the OTel SDK. "
-                            + "It doesn't support reconfiguration of 'otel.semconv-stability.opt-in' 'cicd'  vs 'cicd/dup' ");
-            return;
-        }
-        initialized.set(true);
+    @PostConstruct
+    public void postConstruct() {
 
-        logger.log(Level.INFO, () -> "Start monitoring Jenkins controller executor pool...");
+        logger.log(Level.FINE, () -> "Start monitoring Jenkins controller executor pool...");
 
         Meter meter = Objects.requireNonNull(jenkinsControllerOpenTelemetry).getDefaultMeter();
         Meter oldSemConventionsMeter = semConvStability.emitLegacyCicdSemConv()
