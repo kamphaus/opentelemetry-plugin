@@ -60,10 +60,10 @@ public class JenkinsExecutorMonitoringInitializer implements OpenTelemetryLifecy
         Meter meter = Objects.requireNonNull(jenkinsControllerOpenTelemetry).getDefaultMeter();
         Meter oldSemConventionsMeter = semConvStability.emitLegacyCicdSemConv()
                 ? meter
-                : OpenTelemetry.noop().getMeter("jenkins.opentelemetry");
+                : OpenTelemetry.noop().getMeter(ExtendedJenkinsAttributes.INSTRUMENTATION_NAME);
         Meter newSemConventionsMeter = semConvStability.emitOtelCicdSemConv()
                 ? meter
-                : OpenTelemetry.noop().getMeter("jenkins.opentelemetry");
+                : OpenTelemetry.noop().getMeter(ExtendedJenkinsAttributes.INSTRUMENTATION_NAME);
 
         final ObservableLongMeasurement queueLength = meter.gaugeBuilder(JENKINS_EXECUTOR_QUEUE)
                 .setUnit("${items}")
