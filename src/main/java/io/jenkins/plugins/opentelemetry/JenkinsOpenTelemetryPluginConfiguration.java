@@ -143,7 +143,7 @@ public class JenkinsOpenTelemetryPluginConfiguration extends GlobalConfiguration
 
     private String serviceNamespace;
 
-    private SemConvStability semConvStability = SemConvStability.JENKINS;
+    private SemConvStability semConvStability;
 
     private transient SemConvStability configuredSemConvStability;
 
@@ -230,11 +230,6 @@ public class JenkinsOpenTelemetryPluginConfiguration extends GlobalConfiguration
             LOGGER.log(
                     Level.INFO,
                     "Migration of the 'exporterIntervalMillis' config param to 'otel.metric.export.interval' property");
-            configModified = true;
-        }
-        if (this.semConvStability == null) {
-            this.semConvStability = SemConvStability.JENKINS;
-            LOGGER.log(Level.INFO, "Migration of the 'semConvStability' config param to default JENKINS");
             configModified = true;
         }
 
@@ -601,7 +596,7 @@ public class JenkinsOpenTelemetryPluginConfiguration extends GlobalConfiguration
 
     @NonNull
     public SemConvStability getSemConvStability() {
-        return semConvStability;
+        return semConvStability == null ? SemConvStability.JENKINS : semConvStability;
     }
 
     @DataBoundSetter
@@ -779,8 +774,10 @@ public class JenkinsOpenTelemetryPluginConfiguration extends GlobalConfiguration
         if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
             return FormValidation.error("You do not have permission to configure this setting.");
         }
-        if (configuredSemConvStability != null
-                && configuredSemConvStability.name().equals(value)) {
+        String activeSemConvStability = (configuredSemConvStability != null
+                ? configuredSemConvStability.name()
+                : SemConvStability.JENKINS.name());
+        if (activeSemConvStability.equals(value)) {
             return FormValidation.ok();
         }
         return FormValidation.warning("A restart of Jenkins is required for this value to take effect");
