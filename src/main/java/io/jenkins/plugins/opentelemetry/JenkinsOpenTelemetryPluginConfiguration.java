@@ -776,7 +776,9 @@ public class JenkinsOpenTelemetryPluginConfiguration extends GlobalConfiguration
      */
     @RequirePOST
     public FormValidation doCheckSemConvStability(@QueryParameter String value) {
-        Jenkins.get().checkPermission(Jenkins.ADMINISTER);
+        if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
+            return FormValidation.error("You do not have permission to configure this setting.");
+        }
         if (configuredSemConvStability != null
                 && configuredSemConvStability.name().equals(value)) {
             return FormValidation.ok();
