@@ -87,8 +87,7 @@ public final class GlobalOpenTelemetrySdk {
         logger.log(Level.FINEST, () -> "Configure OpenTelemetry SDK...");
 
         ConfigProperties configProperties = DefaultConfigProperties.create(
-                configurationProperties,
-                ComponentLoader.forClassLoader(DefaultConfigProperties.class.getClassLoader()));
+                configurationProperties, ComponentLoader.forClassLoader(GlobalOpenTelemetrySdk.class.getClassLoader()));
         ResourceBuilder resourceBuilder = Resource.builder();
         resourceBuilder.putAll(new HostResourceProvider().createResource(configProperties));
         resourceBuilder.putAll(new HostIdResourceProvider().createResource(configProperties));

@@ -70,7 +70,7 @@
     <opentelemetry-contrib.version>1.46.0-alpha</opentelemetry-contrib.version>
     <useBeta>true</useBeta>
     <elasticstack.version>9.1.4</elasticstack.version>
-    <error-prone.version>2.47.0</error-prone.version>
+    <error-prone.version>2.48.0</error-prone.version>
     <ban-commons-lang-2.skip>false</ban-commons-lang-2.skip>
     <spotless.check.skip>false</spotless.check.skip>
     <ban-junit4-imports.skip>false</ban-junit4-imports.skip>
@@ -281,7 +281,9 @@
     </dependency>
     <dependency>
       <groupId>io.opentelemetry.instrumentation</groupId>
-      <artifactId>opentelemetry-runtime-telemetry-java8</artifactId>
+      <!-- TODO it is deprecated at 1.60.1 we will have to migrate it again when we update https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/runtime-telemetry/library/README.md -->
+      <artifactId>opentelemetry-runtime-telemetry-java17</artifactId>
+      <version>${opentelemetry-instrumentation.version}-alpha</version>
     </dependency>
 
     <dependency>
