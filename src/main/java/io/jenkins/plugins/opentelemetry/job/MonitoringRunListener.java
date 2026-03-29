@@ -304,15 +304,12 @@ public class MonitoringRunListener extends OtelContextAwareAbstractRunListener
                         CicdIncubatingAttributes.CicdPipelineRunStateIncubatingValues.PENDING));
 
         RunHandler runHandler = getRunHandlers().stream()
-                .filter(rh -> rh.matches(run))
+                .filter(rh -> rh.canCreateSpanBuilder(run))
                 .findFirst()
                 .orElseThrow((Supplier<RuntimeException>)
                         () -> new IllegalStateException("No RunHandler found for run " + run.getClass() + " - " + run));
-        String pipelineShortName = runHandler.getPipelineShortName(run);
-        SpanBuilder rootSpanBuilder = getTracer()
-                .spanBuilder(CicdIncubatingAttributes.CicdPipelineActionNameIncubatingValues.BUILD + " "
-                        + pipelineShortName);
-        runHandler.enrichPipelineRunSpan(run, rootSpanBuilder);
+        SpanBuilder rootSpanBuilder = runHandler.createSpanBuilder(run, getTracer());
+        String pipelineName = runHandler.getSpanName(run);
         rootSpanBuilder.setSpanKind(SpanKind.SERVER);
         String runUrl = Optional.ofNullable(Jenkins.get().getRootUrl()).orElse("") + run.getUrl();
 
@@ -331,7 +328,7 @@ public class MonitoringRunListener extends OtelContextAwareAbstractRunListener
                     .setAttribute(
                             CicdIncubatingAttributes.CICD_PIPELINE_ACTION_NAME,
                             CicdIncubatingAttributes.CicdPipelineActionNameIncubatingValues.BUILD)
-                    .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_NAME, pipelineShortName)
+                    .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_NAME, pipelineName)
                     .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_RUN_URL_FULL, runUrl)
                     .setAttribute(
                             CicdIncubatingAttributes.CICD_PIPELINE_RUN_ID,
@@ -543,19 +540,19 @@ public class MonitoringRunListener extends OtelContextAwareAbstractRunListener
 
     private String getPipelineNameForMetrics(@NonNull Run<?, ?> run) {
         // TODO perf optimization, reuse resolution done in `#_onInitialize(run)`
-        String pipelineShortName = getRunHandlers().stream()
-                .filter(rh -> rh.matches(run))
+        String pipelineName = getRunHandlers().stream()
+                .filter(rh -> rh.canCreateSpanBuilder(run))
                 .findFirst()
                 .orElseThrow((Supplier<RuntimeException>)
                         () -> new IllegalStateException("No RunHandler found for run " + run.getClass() + " - " + run))
-                .getPipelineShortName(run);
+                .getSpanName(run);
         // Use allow and deny lists to determine whether the pipeline name or a generic other category should be used
         // for cardinality protection when used as a metric attribute.
-        return runDurationHistogramAllowList.matcher(pipelineShortName).matches()
+        return runDurationHistogramAllowList.matcher(pipelineName).matches()
                         && !runDurationHistogramDenyList
-                                .matcher(pipelineShortName)
+                                .matcher(pipelineName)
                                 .matches()
-                ? pipelineShortName
+                ? pipelineName
                 : PIPELINE_NAME_OTHER;
     }
 
