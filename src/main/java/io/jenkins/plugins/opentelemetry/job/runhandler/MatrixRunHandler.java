@@ -44,7 +44,7 @@ public class MatrixRunHandler implements RunHandler {
 
             String spanName = getSpanName(run);
             SpanBuilder spanBuilder =
-                tracer.spanBuilder(ExtendedJenkinsAttributes.CI_PIPELINE_RUN_ROOT_SPAN_NAME_PREFIX + spanName);
+                    tracer.spanBuilder(ExtendedJenkinsAttributes.CI_PIPELINE_RUN_ROOT_SPAN_NAME_PREFIX + spanName);
             Combination combination = matrixConfiguration.getCombination();
             List<String> axisNames = new ArrayList<>();
             List<String> axisValues = new ArrayList<>();
@@ -59,7 +59,7 @@ public class MatrixRunHandler implements RunHandler {
             return spanBuilder;
         } else if (run instanceof MatrixBuild matrixBuild) {
             return tracer.spanBuilder(ExtendedJenkinsAttributes.CI_PIPELINE_RUN_ROOT_SPAN_NAME_PREFIX
-                + matrixBuild.getParent().getFullName());
+                    + matrixBuild.getParent().getFullName());
         } else {
             throw new IllegalStateException("Unsupported run type " + run);
         }

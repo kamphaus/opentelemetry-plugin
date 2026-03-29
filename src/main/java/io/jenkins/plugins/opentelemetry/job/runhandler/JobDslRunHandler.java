@@ -7,9 +7,6 @@ package io.jenkins.plugins.opentelemetry.job.runhandler;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
-import hudson.matrix.MatrixConfiguration;
-import hudson.matrix.MatrixProject;
-import hudson.matrix.MatrixRun;
 import hudson.model.Action;
 import hudson.model.Item;
 import hudson.model.Job;
@@ -54,9 +51,9 @@ public class JobDslRunHandler implements RunHandler {
         Collection<? extends Action> actions = seedJobTransientActionFactory.createFor(job);
 
         SeedJobAction seedJobAction = (SeedJobAction) actions.stream()
-            .filter(action -> action instanceof SeedJobAction)
-            .findFirst()
-            .orElseThrow(IllegalStateException::new);
+                .filter(action -> action instanceof SeedJobAction)
+                .findFirst()
+                .orElseThrow(IllegalStateException::new);
 
         // TODO understand the difference between seedJobAction.getTemplateJob() and seedJobAction.getSeedJob()
         Item seedJob = seedJobAction.getSeedJob();
@@ -73,7 +70,7 @@ public class JobDslRunHandler implements RunHandler {
         }
 
         SpanBuilder spanBuilder =
-            tracer.spanBuilder(ExtendedJenkinsAttributes.CI_PIPELINE_RUN_ROOT_SPAN_NAME_PREFIX + spanName);
+                tracer.spanBuilder(ExtendedJenkinsAttributes.CI_PIPELINE_RUN_ROOT_SPAN_NAME_PREFIX + spanName);
         if (templateFullName != null) {
             spanBuilder.setAttribute(ExtendedJenkinsAttributes.CI_PIPELINE_TEMPLATE_ID, templateFullName);
         }
@@ -90,9 +87,9 @@ public class JobDslRunHandler implements RunHandler {
         Collection<? extends Action> actions = seedJobTransientActionFactory.createFor(job);
 
         SeedJobAction seedJobAction = (SeedJobAction) actions.stream()
-            .filter(action -> action instanceof SeedJobAction)
-            .findFirst()
-            .orElseThrow(IllegalStateException::new);
+                .filter(action -> action instanceof SeedJobAction)
+                .findFirst()
+                .orElseThrow(IllegalStateException::new);
 
         // TODO understand the difference between seedJobAction.getTemplateJob() and seedJobAction.getSeedJob()
         Item seedJob = seedJobAction.getSeedJob();

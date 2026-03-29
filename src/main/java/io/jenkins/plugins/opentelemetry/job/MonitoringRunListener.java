@@ -549,9 +549,7 @@ public class MonitoringRunListener extends OtelContextAwareAbstractRunListener
         // Use allow and deny lists to determine whether the pipeline name or a generic other category should be used
         // for cardinality protection when used as a metric attribute.
         return runDurationHistogramAllowList.matcher(pipelineName).matches()
-                        && !runDurationHistogramDenyList
-                                .matcher(pipelineName)
-                                .matches()
+                        && !runDurationHistogramDenyList.matcher(pipelineName).matches()
                 ? pipelineName
                 : PIPELINE_NAME_OTHER;
     }
