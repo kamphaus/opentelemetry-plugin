@@ -26,7 +26,7 @@ public final class ExtendedJenkinsAttributes extends JenkinsAttributes {
     /**
      * Full Jenkins job name, different from the low cardinality
      * {@link io.opentelemetry.semconv.incubating.CicdIncubatingAttributes#CICD_PIPELINE_NAME} that relies on
-     * {@link io.jenkins.plugins.opentelemetry.job.runhandler.RunHandler#getPipelineShortName(Run)}
+     * {@link io.jenkins.plugins.opentelemetry.job.runhandler.RunHandler#getSpanName(Run)}
      * @see Job#getFullName()
      */
     public static final AttributeKey<String> CI_PIPELINE_ID = AttributeKey.stringKey("ci.pipeline.id");
