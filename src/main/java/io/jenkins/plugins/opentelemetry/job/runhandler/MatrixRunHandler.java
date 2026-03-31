@@ -72,6 +72,8 @@ public class MatrixRunHandler implements RunHandler {
             MatrixConfiguration matrixConfiguration = matrixRun.getParent();
             MatrixProject matrixProject = matrixConfiguration.getParent();
             return expandJobName ? run.getParent().getFullName() : matrixProject.getFullName() + "/execution";
+        } else if (run instanceof MatrixBuild matrixBuild) {
+            return matrixBuild.getParent().getFullName();
         }
         throw new IllegalStateException("Unsupported run type " + run);
     }
