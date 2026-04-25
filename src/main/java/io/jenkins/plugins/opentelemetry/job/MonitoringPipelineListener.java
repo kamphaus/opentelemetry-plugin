@@ -133,6 +133,7 @@ public class MonitoringPipelineListener extends AbstractPipelineListener
             }
             if (semConvStability.emitOtelCicdSemConv()) {
                 agentSpanBuilder
+                        .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_TASK_RUN_ID, stepStartNode.getId())
                         .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_TASK_TYPE, stepType)
                         .setAttribute(
                                 CicdIncubatingAttributes.CICD_PIPELINE_TASK_NAME,
@@ -172,6 +173,7 @@ public class MonitoringPipelineListener extends AbstractPipelineListener
                 }
                 if (semConvStability.emitOtelCicdSemConv()) {
                     allocateAgentSpanBuilder
+                            .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_TASK_RUN_ID, stepStartNode.getId())
                             .setAttribute(
                                     CicdIncubatingAttributes.CICD_PIPELINE_TASK_TYPE,
                                     getStepType(
@@ -231,6 +233,7 @@ public class MonitoringPipelineListener extends AbstractPipelineListener
             }
             if (semConvStability.emitOtelCicdSemConv()) {
                 stageSpan
+                        .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_TASK_RUN_ID, stepStartNode.getId())
                         .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_TASK_TYPE, stepType)
                         .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_TASK_NAME, stageName);
             }
@@ -309,6 +312,7 @@ public class MonitoringPipelineListener extends AbstractPipelineListener
         }
         if (semConvStability.emitOtelCicdSemConv()) {
             spanBuilder
+                    .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_TASK_RUN_ID, node.getId())
                     .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_TASK_TYPE, stepType)
                     .setAttribute(
                             CicdIncubatingAttributes.CICD_PIPELINE_TASK_NAME,
@@ -429,6 +433,7 @@ public class MonitoringPipelineListener extends AbstractPipelineListener
             }
             if (semConvStability.emitOtelCicdSemConv()) {
                 atomicStepSpan
+                        .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_TASK_RUN_ID, stepStartNode.getId())
                         .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_TASK_TYPE, stepType)
                         .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_TASK_NAME, branchName);
             }
@@ -547,6 +552,7 @@ public class MonitoringPipelineListener extends AbstractPipelineListener
             }
             if (semConvStability.emitOtelCicdSemConv()) {
                 spanBuilder
+                        .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_TASK_RUN_ID, stepStartNode.getId())
                         .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_TASK_TYPE, stepType)
                         .setAttribute(CicdIncubatingAttributes.CICD_PIPELINE_TASK_NAME, stepName);
             }
