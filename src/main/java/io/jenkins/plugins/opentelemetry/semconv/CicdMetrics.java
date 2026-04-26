@@ -4,6 +4,7 @@ import hudson.model.Result;
 import io.opentelemetry.api.incubator.metrics.ExtendedDoubleHistogramBuilder;
 import io.opentelemetry.api.incubator.metrics.ExtendedDoubleUpDownCounterBuilder;
 import io.opentelemetry.api.incubator.metrics.ExtendedLongCounterBuilder;
+import io.opentelemetry.api.incubator.metrics.ExtendedLongUpDownCounterBuilder;
 import io.opentelemetry.api.metrics.DoubleHistogram;
 import io.opentelemetry.api.metrics.DoubleHistogramBuilder;
 import io.opentelemetry.api.metrics.LongCounter;
@@ -48,7 +49,7 @@ public class CicdMetrics {
                 .setUnit("{run}")
                 .setDescription("Number of active pipeline runs grouped by pipeline and state.");
         if (cicdPipelineRunActiveCounterBuilder
-                instanceof ExtendedDoubleUpDownCounterBuilder pipelineRunActiveCounterBuilder) {
+                instanceof ExtendedLongUpDownCounterBuilder pipelineRunActiveCounterBuilder) {
             pipelineRunActiveCounterBuilder.setAttributesAdvice(List.of(
                     CicdIncubatingAttributes.CICD_PIPELINE_NAME, CicdIncubatingAttributes.CICD_PIPELINE_RUN_STATE));
         }
@@ -60,7 +61,7 @@ public class CicdMetrics {
         LongUpDownCounterBuilder cicdWorkerCountBuilder = meter.upDownCounterBuilder("cicd.worker.count")
                 .setUnit("{worker}")
                 .setDescription("The number of workers on the CICD system by state.");
-        if (cicdWorkerCountBuilder instanceof ExtendedDoubleUpDownCounterBuilder cicdWorkerCountExtendedBuilder) {
+        if (cicdWorkerCountBuilder instanceof ExtendedLongUpDownCounterBuilder cicdWorkerCountExtendedBuilder) {
             cicdWorkerCountExtendedBuilder.setAttributesAdvice(List.of(CicdIncubatingAttributes.CICD_WORKER_STATE));
         }
 
