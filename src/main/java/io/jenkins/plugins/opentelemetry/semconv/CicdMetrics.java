@@ -2,7 +2,6 @@ package io.jenkins.plugins.opentelemetry.semconv;
 
 import hudson.model.Result;
 import io.opentelemetry.api.incubator.metrics.ExtendedDoubleHistogramBuilder;
-import io.opentelemetry.api.incubator.metrics.ExtendedDoubleUpDownCounterBuilder;
 import io.opentelemetry.api.incubator.metrics.ExtendedLongCounterBuilder;
 import io.opentelemetry.api.incubator.metrics.ExtendedLongUpDownCounterBuilder;
 import io.opentelemetry.api.metrics.DoubleHistogram;
