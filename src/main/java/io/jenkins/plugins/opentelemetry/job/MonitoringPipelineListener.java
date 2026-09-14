@@ -38,6 +38,7 @@ import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
+import io.opentelemetry.semconv.ErrorAttributes;
 import io.opentelemetry.semconv.incubating.CicdIncubatingAttributes;
 import io.opentelemetry.semconv.incubating.HostIncubatingAttributes;
 import java.io.IOException;
@@ -106,6 +107,10 @@ public class MonitoringPipelineListener extends AbstractPipelineListener
         this.statusUnsetCausesOfInterruption =
                 new HashSet<>(jenkinsOpenTelemetryPluginConfiguration.getStatusUnsetCausesOfInterruption());
         this.semConvStability = jenkinsOpenTelemetryPluginConfiguration.getSemConvStability();
+    }
+
+    public final void setSemConvStability(@NonNull SemConvStability semConvStability) {
+        this.semConvStability = semConvStability;
     }
 
     @Override
@@ -494,11 +499,20 @@ public class MonitoringPipelineListener extends AbstractPipelineListener
                         String statusDescription =
                                 throwable.getClass().getSimpleName() + ": " + String.join(", ", causeDescriptions);
                         span.setStatus(StatusCode.ERROR, statusDescription);
+                        if (semConvStability.emitOtelCicdSemConv()) {
+                            span.setAttribute(
+                                    ErrorAttributes.ERROR_TYPE,
+                                    throwable.getClass().getSimpleName());
+                        }
                     }
                 } else {
                     if (status == null) status = GenericStatus.FAILURE;
                     span.recordException(throwable);
                     span.setStatus(StatusCode.ERROR, throwable.getMessage());
+                    if (semConvStability.emitOtelCicdSemConv()) {
+                        span.setAttribute(
+                                ErrorAttributes.ERROR_TYPE, throwable.getClass().getSimpleName());
+                    }
                 }
             }
 

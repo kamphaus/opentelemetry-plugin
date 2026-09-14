@@ -9,15 +9,19 @@ import static org.mockito.Mockito.mockStatic;
 
 import hudson.model.Computer;
 import io.jenkins.plugins.opentelemetry.OpenTelemetryAttributesAction;
+import io.jenkins.plugins.opentelemetry.semconv.SemConvStability;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.sdk.testing.trace.SpanMock;
+import io.opentelemetry.semconv.ErrorAttributes;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import jenkins.model.Jenkins;
+import org.jenkinsci.plugins.workflow.actions.ErrorAction;
+import org.jenkinsci.plugins.workflow.cps.nodes.StepStartNode;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.steps.Step;
@@ -132,6 +136,23 @@ public class MonitoringPipelineListenerNonParameterizedTest {
             Assertions.assertTrue(shSpan.getAttributes().containsKey(attributeKey));
             Assertions.assertEquals("true", shSpan.getAttributes().get(attributeKey));
         }
+    }
+
+    @Test
+    public void testEndCurrentSpanSetsErrorTypeOnFailure() throws IOException, InterruptedException {
+        StepStartNode stepStartNode = Mockito.mock(StepStartNode.class);
+        Mockito.when(otelTraceService.getSpan(workflowRun, stepStartNode)).thenReturn(testSpan);
+
+        ErrorAction errorAction = Mockito.mock(ErrorAction.class);
+        Mockito.when(errorAction.getError()).thenReturn(new IllegalStateException("boom"));
+        Mockito.when(stepStartNode.getError()).thenReturn(errorAction);
+
+        monitoringPipelineListener.setSemConvStability(SemConvStability.OTEL);
+
+        monitoringPipelineListener.onAfterStartNodeStep(stepStartNode, null, workflowRun);
+
+        Assertions.assertEquals(
+                "IllegalStateException", testSpan.getAttributes().get(ErrorAttributes.ERROR_TYPE));
     }
 
     private void setupAttributesActionStubs(List<String> allowedIds) throws IOException, InterruptedException {

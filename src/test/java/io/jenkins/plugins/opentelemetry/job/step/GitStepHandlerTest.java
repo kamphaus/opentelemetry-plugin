@@ -9,11 +9,13 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.jenkins.plugins.opentelemetry.semconv.ExtendedJenkinsAttributes;
 import io.jenkins.plugins.opentelemetry.semconv.SemConvStability;
+import io.jenkins.plugins.opentelemetry.semconv.VcsAttributes;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.sdk.testing.trace.SpanBuilderMock;
 import io.opentelemetry.sdk.testing.trace.TracerMock;
 import io.opentelemetry.semconv.ServerAttributes;
 import io.opentelemetry.semconv.UrlAttributes;
+import io.opentelemetry.semconv.incubating.VcsIncubatingAttributes;
 import java.util.Map;
 import org.eclipse.jgit.transport.URIish;
 import org.hamcrest.MatcherAssert;
@@ -180,12 +182,47 @@ public class GitStepHandlerTest {
 
     private SpanBuilderMock testGithubUrl(
             @NonNull String githubUrl, @Nullable String gitBranch, @Nullable String gitUsername) throws Exception {
+        return testGithubUrl(githubUrl, gitBranch, gitUsername, SemConvStability.JENKINS);
+    }
+
+    private SpanBuilderMock testGithubUrl(
+            @NonNull String githubUrl,
+            @Nullable String gitBranch,
+            @Nullable String gitUsername,
+            @NonNull SemConvStability semConvStability)
+            throws Exception {
 
         GitStepHandler handler = new GitStepHandler();
-        handler.setSemConvStability(SemConvStability.JENKINS);
+        handler.setSemConvStability(semConvStability);
 
         return (SpanBuilderMock)
                 handler.createSpanBuilderFromGitDetails(githubUrl, gitBranch, gitUsername, "git", new TracerMock());
+    }
+
+    @Test
+    public void testHttpsGithubUrlOtelVcsClientSpanAttributes() throws Exception {
+        SpanBuilderMock spanBuilder = testGithubUrl(
+                "https://github.com/open-telemetry/opentelemetry-java", "main", "my-git-user", SemConvStability.OTEL);
+        Map<AttributeKey<?>, Object> attributes = spanBuilder.getAttributes();
+
+        MatcherAssert.assertThat(attributes.get(VcsAttributes.VCS_OPERATION_NAME), Matchers.equalTo("checkout"));
+        MatcherAssert.assertThat(
+                attributes.get(VcsIncubatingAttributes.VCS_OWNER_NAME), Matchers.equalTo("open-telemetry"));
+        MatcherAssert.assertThat(
+                attributes.get(VcsIncubatingAttributes.VCS_REPOSITORY_NAME),
+                Matchers.equalTo("open-telemetry/opentelemetry-java"));
+        MatcherAssert.assertThat(
+                attributes.get(VcsIncubatingAttributes.VCS_REF_TYPE),
+                Matchers.equalTo(VcsIncubatingAttributes.VcsRefTypeIncubatingValues.BRANCH));
+    }
+
+    @Test
+    public void testSshGitUrlWithPortOtelVcsClientSpanAttributes() throws Exception {
+        SpanBuilderMock spanBuilder =
+                testGithubUrl("ssh://user@example.com:2222/project.git", "main", "my-git-user", SemConvStability.OTEL);
+        Map<AttributeKey<?>, Object> attributes = spanBuilder.getAttributes();
+
+        MatcherAssert.assertThat(attributes.get(ServerAttributes.SERVER_PORT), Matchers.equalTo(2222L));
     }
 
     @Test

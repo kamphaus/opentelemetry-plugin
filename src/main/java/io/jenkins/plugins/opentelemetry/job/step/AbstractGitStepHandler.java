@@ -15,6 +15,7 @@ import edu.umd.cs.findbugs.annotations.Nullable;
 import io.jenkins.plugins.opentelemetry.JenkinsOpenTelemetryPluginConfiguration;
 import io.jenkins.plugins.opentelemetry.semconv.ExtendedJenkinsAttributes;
 import io.jenkins.plugins.opentelemetry.semconv.SemConvStability;
+import io.jenkins.plugins.opentelemetry.semconv.VcsAttributes;
 import io.opentelemetry.api.trace.SpanBuilder;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
@@ -95,6 +96,13 @@ public abstract class AbstractGitStepHandler implements StepHandler {
         }
         String host = gitUri.getHost();
         String gitRepositoryPath = normalizeGitRepositoryPath(gitUri);
+        String gitOwnerName = null;
+        if (host != null) {
+            int slashIndex = gitRepositoryPath.indexOf('/');
+            if (slashIndex > 0) {
+                gitOwnerName = gitRepositoryPath.substring(0, slashIndex);
+            }
+        }
 
         final SpanBuilder spanBuilder;
         if ("https".equals(gitUri.getScheme())) {
@@ -138,12 +146,20 @@ public abstract class AbstractGitStepHandler implements StepHandler {
             spanBuilder = tracer.spanBuilder(spanName);
         }
 
+        if (gitUri.getPort() != -1) {
+            spanBuilder.setAttribute(ServerAttributes.SERVER_PORT, (long) gitUri.getPort());
+        }
+
         if (semConvStability.emitLegacyCicdSemConv()) {
             spanBuilder.setAttribute(ExtendedJenkinsAttributes.GIT_REPOSITORY, gitRepositoryPath);
         }
         if (semConvStability.emitOtelCicdSemConv()) {
+            spanBuilder.setAttribute(VcsAttributes.VCS_OPERATION_NAME, "checkout");
             spanBuilder.setAttribute(VcsIncubatingAttributes.VCS_REPOSITORY_NAME, gitRepositoryPath);
             spanBuilder.setAttribute(VcsIncubatingAttributes.VCS_REPOSITORY_URL_FULL, sanitizeUrl(gitUri));
+            if (!Strings.isNullOrEmpty(gitOwnerName)) {
+                spanBuilder.setAttribute(VcsIncubatingAttributes.VCS_OWNER_NAME, gitOwnerName);
+            }
         }
         if (!Strings.isNullOrEmpty(gitBranch)) {
             if (semConvStability.emitLegacyCicdSemConv()) {
@@ -154,6 +170,9 @@ public abstract class AbstractGitStepHandler implements StepHandler {
                 spanBuilder.setAttribute(
                         VcsIncubatingAttributes.VCS_REF_HEAD_TYPE,
                         VcsIncubatingAttributes.VcsRefHeadTypeIncubatingValues.BRANCH);
+                spanBuilder.setAttribute(
+                        VcsIncubatingAttributes.VCS_REF_TYPE,
+                        VcsIncubatingAttributes.VcsRefTypeIncubatingValues.BRANCH);
             }
         }
         if (!Strings.isNullOrEmpty(gitUserName)) {
